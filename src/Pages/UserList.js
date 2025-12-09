@@ -77,47 +77,50 @@ export default function UserList() {
   };
 
   const handleUpdate = async () => {
-  try {
-    const res = await fetch(
-      `http://31.97.206.144:7021/api/admin/updateusers/${selectedUser.id}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: selectedUser.name,
-          mobile: selectedUser.mobile,
-          status: selectedUser.status,
-        }),
-      }
-    );
+    try {
+      const res = await fetch(
+        `http://31.97.206.144:7021/api/admin/updateusers/${selectedUser.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: selectedUser.name,
+            mobile: selectedUser.mobile,
+            status: selectedUser.status,
+          }),
+        }
+      );
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Update failed");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Update failed");
 
-    alert("User updated successfully!");
-    setIsEditOpen(false);
+      alert("User updated successfully!");
+      setIsEditOpen(false);
 
-    // ✅ Update local users state immediately (no refetch required)
-    setUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user._id === selectedUser.id
-          ? { ...user, ...selectedUser } // merge new values
-          : user
-      )
-    );
+      // ✅ Update local users state immediately (no refetch required)
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user._id === selectedUser.id
+            ? { ...user, ...selectedUser } // merge new values
+            : user
+        )
+      );
 
-  } catch (err) {
-    alert("Update failed: " + err.message);
-  }
-};
+    } catch (err) {
+      alert("Update failed: " + err.message);
+    }
+  };
 
 
   // Filter users based on filter criteria
   const filteredUsers = users.filter(user => {
     const nameMatch = !filters.name ||
       (user.name && user.name.toLowerCase().includes(filters.name.toLowerCase()));
-    const mobileMatch = !filters.mobile ||
-      (user.mobile && user.mobile.includes(filters.mobile));
+    const mobileMatch =
+      filters.mobile.trim() === "" ||
+      (user.mobile &&
+        String(user.mobile).toLowerCase().includes(filters.mobile.toLowerCase().trim()));
+
     const aadhaarMatch = !filters.aadhaar ||
       (user.aadhaarCardNumber && user.aadhaarCardNumber.includes(filters.aadhaar));
     const statusMatch = !filters.status ||

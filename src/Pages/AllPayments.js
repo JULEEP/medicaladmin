@@ -10,6 +10,7 @@ export default function AllPayments() {
   const [currentPage, setCurrentPage] = useState(1);
   const [filterMethod, setFilterMethod] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [filterPaymentStatus, setFilterPaymentStatus] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
   const navigate = useNavigate();
@@ -71,7 +72,10 @@ export default function AllPayments() {
     const statusMatch =
       !filterStatus ||
       (p.status && p.status.toLowerCase().includes(filterStatus.toLowerCase()));
-    return methodMatch && statusMatch;
+    const paymentStatusMatch =
+      !filterPaymentStatus || 
+      (p.paymentStatus && p.paymentStatus.toLowerCase().includes(filterPaymentStatus.toLowerCase()));
+    return methodMatch && statusMatch && paymentStatusMatch;
   });
 
   // Pagination
@@ -83,6 +87,7 @@ export default function AllPayments() {
   // Unique filters
   const uniqueMethods = [...new Set(payments.map((p) => p.paymentMethod))].sort();
   const uniqueStatuses = [...new Set(payments.map((p) => p.status))].sort();
+  const uniquePaymentStatuses = [...new Set(payments.map((p) => p.paymentStatus))].sort();
 
   // Generate Invoice using HTML and CSS - Print Method
   const generateInvoice = (payment) => {
@@ -369,6 +374,26 @@ export default function AllPayments() {
                 ))}
               </select>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Filter by Status
+              </label>
+              <select
+                value={filterPaymentStatus}
+                onChange={(e) => {
+                  setFilterPaymentStatus(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full p-1.5 border rounded text-sm"
+              >
+                <option value="">All Statuses</option>
+                {uniquePaymentStatuses.map((p, i) => (
+                  <option key={i} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="mt-2 text-xs text-gray-500">
             Showing {filteredPayments.length} of {payments.length} payments
@@ -392,6 +417,7 @@ export default function AllPayments() {
                   <th className="p-2 text-left text-sm">Amount</th>
                   <th className="p-2 text-left text-sm">Method</th>
                   <th className="p-2 text-left text-sm">Status</th>
+                  <th className="p-2 text-left text-sm">PaymentStatus</th>
                   <th className="p-2 text-left text-sm">Date</th>
                   <th className="p-2 text-left text-sm">Actions</th>
                 </tr>
@@ -448,6 +474,7 @@ export default function AllPayments() {
                           {p.status}
                         </span>
                       </td>
+                      <td className="p-2 text-sm">{p.paymentStatus}</td>
                       <td className="p-2 text-xs">
                         {new Date(p.createdAt).toLocaleString()}
                       </td>
