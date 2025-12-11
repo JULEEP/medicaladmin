@@ -394,9 +394,17 @@ export default function UserList() {
                 <input
                   type="text"
                   value={selectedUser.mobile}
-                  onChange={(e) => setSelectedUser({ ...selectedUser, mobile: e.target.value })}
+                  maxLength={10}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, ""); // allow digits only
+                    if (value.length <= 10) {
+                      setSelectedUser({ ...selectedUser, mobile: value });
+                    }
+                  }}
                   className="w-full p-2 border rounded"
+                  placeholder="Enter 10-digit mobile"
                 />
+
               </div>
 
               <div>

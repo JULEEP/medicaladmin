@@ -63,15 +63,36 @@ export default function PharmacyList() {
     if (searchTerm.trim() === "") {
       setFilteredPharmacies(pharmacies);
     } else {
-      const filtered = pharmacies.filter(pharmacy =>
-        pharmacy.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pharmacy.vendorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pharmacy.vendorEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pharmacy.vendorPhone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pharmacy.vendorId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pharmacy.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pharmacy.address?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+     const filtered = pharmacies.filter(pharmacy =>
+  String(pharmacy.name || "")
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase()) ||
+
+  String(pharmacy.vendorName || "")
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase()) ||
+
+  String(pharmacy.vendorEmail || "")
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase()) ||
+
+  String(pharmacy.vendorPhone || "")
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase()) ||
+
+  String(pharmacy.vendorId || "")
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase()) ||
+
+  String(pharmacy.status || "")
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase()) ||
+
+  String(pharmacy.address || "")
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase())
+);
+
       setFilteredPharmacies(filtered);
     }
     setCurrentPage(1); // Reset to first page when searching
