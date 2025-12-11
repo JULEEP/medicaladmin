@@ -70,7 +70,7 @@ const Sidebar = ({ isCollapsed, isMobile }) => {
       dropdown: [
         { name: "All Orders", path: "/orderlist" },
         { name: "All Delivered Orders", path: "/alldeliveredorders" },
-        { name: "All Preodic Orders", path: "/preodicorders" },
+        { name: "All Peroidic Orders", path: "/preodicorders" },
         { name: "Prescription Orders", path: "/prescriptionorders" },
       ],
     },

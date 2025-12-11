@@ -80,6 +80,7 @@ export default function PeriodicOrders() {
             alert("Please fill both status and message.");
             return;
         }
+        console.log("Updating status for order:", selectedOrder);
         try {
             const res = await fetch(
                 `http://31.97.206.144:7021/api/admin/updatepreodicorders/${selectedOrder.userId._id}/${selectedOrder._id}`,
@@ -88,7 +89,9 @@ export default function PeriodicOrders() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(statusForm),
                 }
+                
             );
+            console.log(res);
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || "Update failed");
 
