@@ -498,7 +498,8 @@ export default function PeriodicOrders() {
                         <table className="w-full table-auto">
                             <thead className="bg-green-600 text-white">
                                 <tr>
-                                    <th className="p-2 text-left text-sm">#</th>
+                                    <th className="p-2 text-left text-sm">S NO</th>
+                                    <th className="p-2 text-left text-sm">OrderId</th>
                                     <th className="p-2 text-left text-sm">User Info</th>
                                     <th className="p-2 text-left text-sm">Plan Type</th>
                                     <th className="p-2 text-left text-sm">Total Price</th>
@@ -514,6 +515,7 @@ export default function PeriodicOrders() {
                                     currentItems.map((order, idx) => (
                                         <tr key={order._id} className="border-b hover:bg-gray-50 align-top">
                                             <td className="p-2 text-sm">{indexOfFirstItem + idx + 1}</td>
+                                            <td className="p-2 font-mono text-sm">{order._id?.slice(-6)}</td>
                                             <td className="p-2">
                                                 <div className="text-sm">
                                                     <div className="font-medium">{order.userId?.name || "N/A"}</div>

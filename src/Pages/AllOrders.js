@@ -103,7 +103,7 @@ export default function AllOrders() {
     // Date filtering functions
     const filterOrdersByDate = (order) => {
         const orderDate = new Date(order.createdAt);
-        
+
         if (filterDateType === "day" && filterDate) {
             const filterDateObj = new Date(filterDate);
             return (
@@ -112,7 +112,7 @@ export default function AllOrders() {
                 orderDate.getFullYear() === filterDateObj.getFullYear()
             );
         }
-        
+
         if (filterDateType === "month" && filterMonth) {
             const [year, month] = filterMonth.split('-');
             return (
@@ -120,11 +120,11 @@ export default function AllOrders() {
                 orderDate.getMonth() === parseInt(month) - 1
             );
         }
-        
+
         if (filterDateType === "year" && filterYear) {
             return orderDate.getFullYear() === parseInt(filterYear);
         }
-        
+
         return true;
     };
 
@@ -234,8 +234,8 @@ export default function AllOrders() {
             </thead>
             <tbody>
                 ${order.orderItems?.map((item, idx) => {
-                    const itemTotal = (item.medicineId?.price || 0) * (item.quantity || 1);
-                    return `
+            const itemTotal = (item.medicineId?.price || 0) * (item.quantity || 1);
+            return `
                         <tr>
                             <td style="border:1px solid #ccc; padding:8px;">${idx + 1}</td>
                             <td style="border:1px solid #ccc; padding:8px;">
@@ -248,7 +248,7 @@ export default function AllOrders() {
                             <td style="border:1px solid #ccc; padding:8px;">0.00</td>
                             <td style="border:1px solid #ccc; padding:8px;">${itemTotal.toFixed(2)}</td>
                         </tr>`;
-                }).join("")}
+        }).join("")}
                 <tr style="font-weight:bold;">
                     <td colspan="2" style="border:1px solid #ccc; padding:8px; text-align:right;">Total</td>
                     <td style="border:1px solid #ccc; padding:8px;">${totalAmount.toFixed(2)}</td>
@@ -313,12 +313,12 @@ export default function AllOrders() {
         const stateMatch = !filterState ||
             (order.deliveryAddress?.state &&
                 order.deliveryAddress.state.toLowerCase().includes(filterState.toLowerCase()));
-        
+
         // Status filter
         const statusMatch = !filterStatus ||
             (order.status &&
                 order.status.toLowerCase().includes(filterStatus.toLowerCase()));
-        
+
         // Date filter
         const dateMatch = filterOrdersByDate(order);
 
@@ -352,11 +352,21 @@ export default function AllOrders() {
     const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
 
     // Get unique states for filter dropdown
-    const uniqueStates = [...new Set(
-        orders
-            .map(order => order.deliveryAddress?.state)
-            .filter(state => state)
-    )].sort();
+    const uniqueStates = [
+        ...new Set(
+            orders
+                .map(order => order.deliveryAddress?.state?.toLowerCase().trim())
+                .filter(Boolean)
+        )
+    ]
+        .sort()
+        .map(state =>
+            state
+                .split(" ")
+                .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+                .join(" ")
+        );
+
 
     // Get unique statuses for filter dropdown
     const uniqueStatuses = [...new Set(
@@ -509,7 +519,7 @@ export default function AllOrders() {
                             </div>
                         )}
                     </div>
-                    
+
                     <div className="mt-2 text-xs text-gray-500">
                         Showing {filteredOrders.length} of {orders.length} orders
                         {(filterDateType === "day" && filterDate) && ` • Date: ${filterDate}`}
@@ -528,7 +538,8 @@ export default function AllOrders() {
                         <table className="w-full table-auto">
                             <thead className="bg-blue-600 text-white">
                                 <tr>
-                                    <th className="p-2 text-left text-sm">#</th>
+                                    <th className="p-2 text-left text-sm">S NO</th>
+                                    <th className="p-2 text-left text-sm">Order ID</th>
                                     <th className="p-2 text-left text-sm">User</th>
                                     <th className="p-2 text-left text-sm">Medicines</th>
                                     <th className="p-2 text-left text-sm">Total Price</th>
@@ -542,6 +553,7 @@ export default function AllOrders() {
                                     currentItems.map((order, idx) => (
                                         <tr key={order._id} className="border-b hover:bg-gray-50 align-top">
                                             <td className="p-2 text-sm">{indexOfFirstItem + idx + 1}</td>
+                                            <td className="p-2 font-mono text-sm">{order._id?.slice(-6)}</td>
                                             <td className="p-2">
                                                 <div className="flex items-center gap-1">
                                                     {order.userId?.profileImage && (
@@ -575,10 +587,10 @@ export default function AllOrders() {
                                             </td>
                                             <td className="p-2">
                                                 <span className={`px-1.5 py-0.5 rounded-full text-xs ${order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
-                                                        order.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
-                                                            order.status === 'Shipped' ? 'bg-blue-100 text-blue-800' :
-                                                                order.status === 'Confirmed' ? 'bg-purple-100 text-purple-800' :
-                                                                    'bg-yellow-100 text-yellow-800'
+                                                    order.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                                                        order.status === 'Shipped' ? 'bg-blue-100 text-blue-800' :
+                                                            order.status === 'Confirmed' ? 'bg-purple-100 text-purple-800' :
+                                                                'bg-yellow-100 text-yellow-800'
                                                     }`}>
                                                     {order.status || "Pending"}
                                                 </span>
@@ -633,8 +645,8 @@ export default function AllOrders() {
                                 disabled={currentPage === 1}
                                 onClick={() => setCurrentPage((p) => p - 1)}
                                 className={`px-3 py-1.5 rounded flex items-center text-sm ${currentPage === 1
-                                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                        : "bg-blue-500 text-white hover:bg-blue-600"
+                                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                    : "bg-blue-500 text-white hover:bg-blue-600"
                                     }`}
                             >
                                 <FiChevronLeft className="mr-1" /> Prev
@@ -648,8 +660,8 @@ export default function AllOrders() {
                                 disabled={currentPage === totalPages || totalPages === 0}
                                 onClick={() => setCurrentPage((p) => p + 1)}
                                 className={`px-3 py-1.5 rounded flex items-center text-sm ${currentPage === totalPages || totalPages === 0
-                                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                        : "bg-blue-500 text-white hover:bg-blue-600"
+                                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                    : "bg-blue-500 text-white hover:bg-blue-600"
                                     }`}
                             >
                                 Next <FiChevronRight className="ml-1" />

@@ -125,7 +125,7 @@ const NotificationPage = () => {
       // Close modal
       setPharmacyStatusModal(false);
       setSelectedPharmacyNotification(null);
-      
+      alert("Notification updated successfully!");
     } catch (err) {
       console.error("Error updating pharmacy status:", err);
       alert("Failed to update pharmacy status.");

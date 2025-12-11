@@ -40,7 +40,7 @@ const Sidebar = ({ isCollapsed, isMobile }) => {
         { name: "All Prescription", path: "/prescriptions" },
         { name: "All Messages", path: "/allmessage" },
         { name: "Vendor Queries", path: "/vendorqueries" },
-        { name: "Vendor PaymnetHistory", path: "/vendorpaymenthistory" },
+        { name: "Vendor PaymentHistory", path: "/vendorpaymenthistory" },
       ],
     },
     {

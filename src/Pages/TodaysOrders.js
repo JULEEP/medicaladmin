@@ -123,6 +123,7 @@ const TodaysOrders = () => {
             <thead className="bg-green-600 text-white">
               <tr>
                 <th className="p-3 border text-left">Sl</th>
+                <th className="p-3 border text-left">Order ID</th>
                 <th className="p-3 border text-left">User Name</th>
                 <th className="p-3 border text-left">User Email</th>
                 <th className="p-3 border text-left">Mobile</th>
@@ -139,6 +140,7 @@ const TodaysOrders = () => {
               {ordersData.map((order, index) => (
                 <tr key={order._id} className="border-b hover:bg-gray-50 transition-colors">
                   <td className="p-3 border">{index + 1}</td>
+                  <td className="p-3 border font-mono text-sm">{order._id?.slice(-6)}</td>
                   <td className="p-3 border font-medium">{order.userId?.name || "N/A"}</td>
                   <td className="p-3 border text-blue-600">{order.userId?.email || "N/A"}</td>
                   <td className="p-3 border">{order.userId?.mobile || "N/A"}</td>

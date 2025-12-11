@@ -141,7 +141,8 @@ export default function DeliveredOrders() {
         <table className="w-full table-auto">
           <thead className="bg-green-600 text-white">
             <tr>
-              <th className="p-3 text-left">#</th>
+              <th className="p-3 text-left">S NO</th>
+              <th className="p-3 text-left">OrderId</th>
               <th className="p-3 text-left">User</th>
               <th className="p-3 text-left">Medicines</th>
               <th className="p-3 text-left">Total</th>
@@ -156,8 +157,9 @@ export default function DeliveredOrders() {
               filteredOrders.map((order, idx) => (
                 <tr key={order._id} className="border-b hover:bg-gray-50 align-top">
                   <td className="p-3">{idx + 1}</td>
+                  <td className="p-3 font-mono text-sm">{order._id?.slice(-6)}</td>
                   <td className="p-3">
-                    <div className="font-semibold">{order.userId?.name}</div>
+                    <div className="font-semibold">{order.userId?.name || "N/A"}</div>
                     <div className="text-sm text-gray-500">{order.userId?.mobile}</div>
                   </td>
                   <td className="p-3">

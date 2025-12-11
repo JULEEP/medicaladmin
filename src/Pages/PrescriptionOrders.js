@@ -596,7 +596,8 @@ export default function PrescriptionOrders() {
                         <table className="w-full table-auto">
                             <thead className="bg-blue-600 text-white">
                                 <tr>
-                                    <th className="p-2 text-left text-sm">#</th>
+                                    <th className="p-2 text-left text-sm">S NO</th>
+                                    <th className="p-2 text-left text-sm">Order Id</th>
                                     <th className="p-2 text-left text-sm">User</th>
                                     <th className="p-2 text-left text-sm">Medicines</th>
                                     <th className="p-2 text-left text-sm">Total Amount</th>
@@ -610,6 +611,7 @@ export default function PrescriptionOrders() {
                                     currentItems.map((order, idx) => (
                                         <tr key={order._id} className="border-b hover:bg-gray-50 align-top">
                                             <td className="p-2 text-sm">{indexOfFirstItem + idx + 1}</td>
+                                            <td className="p-2 text-sm font-medium text-blue-700">{order._id?.slice(-6)}</td>
                                             <td className="p-2">
                                                 <div className="flex items-center gap-1">
                                                     {order.userId?.profileImage && (
