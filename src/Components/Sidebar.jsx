@@ -115,6 +115,13 @@ const Sidebar = ({ isCollapsed, isMobile }) => {
       dropdown: [{ name: "All Notifications", path: "/notifications" }],
     },
     {
+  icon: <i className="ri-wallet-fill text-white"></i>, // You can pick a wallet icon
+  name: "Vendor Withdrawal",
+  dropdown: [
+    { name: "Withdrawals", path: "/vendorwithdrawal" },
+  ],
+},
+    {
       icon: <i className="ri-settings-3-fill text-white"></i>,
       name: "Settings",
       dropdown: [

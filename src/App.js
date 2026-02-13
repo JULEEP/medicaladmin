@@ -124,6 +124,7 @@ import PrescriptionOrders from "./Pages/PrescriptionOrders.js";
 import VendorQueriesPage from "./Pages/VendorQueriesPage.js";
 import VendorPaymentHistory from "./Pages/VendorPaymentHistory.js";
 import InactivePharmacyList from "./Pages/InactivePharmacyList.js";
+import AdminWithdrawalManagement from "./Pages/VendorWidhwarallist.js";
 
 
 
@@ -261,6 +262,7 @@ function App() {
               <Route path="/prescriptionorders" element={<PrescriptionOrders />} />
               <Route path="/vendorqueries" element={<VendorQueriesPage />} />
               <Route path="/vendorpaymenthistory" element={<VendorPaymentHistory />} />
+              <Route path="/vendorwithdrawal" element={<AdminWithdrawalManagement />} />
 
 
 
