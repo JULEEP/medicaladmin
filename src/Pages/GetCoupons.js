@@ -1,226 +1,193 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { FiEdit3, FiTrash2 } from 'react-icons/fi';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { FiEdit3, FiTrash2 } from "react-icons/fi";
 
 const GetCoupons = () => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState(''); // 'success' or 'error'
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
   const [selectedCoupon, setSelectedCoupon] = useState(null);
-  const [newCouponCode, setNewCouponCode] = useState('');
-  const [newDiscountPercentage, setNewDiscountPercentage] = useState('');
-  const [newExpirationDate, setNewExpirationDate] = useState('');
+
+  const [newCouponCode, setNewCouponCode] = useState("");
+  const [newDiscountPercentage, setNewDiscountPercentage] = useState("");
+  const [newExpirationDate, setNewExpirationDate] = useState("");
+
+  // ⭐ Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const fetchCoupons = async () => {
     try {
-      const response = await axios.get('http://31.97.206.144:7021/api/admin/getcoupons');
-      setCoupons(response.data.coupons);
+      const res = await axios.get("http://31.97.206.144:7021/api/admin/getcoupons");
+      setCoupons(res.data.coupons);
       setLoading(false);
-    } catch (error) {
-      setMessage('Failed to fetch coupons');
-      setMessageType('error');
+    } catch {
+      setMessage("Failed to fetch coupons");
+      setMessageType("error");
       setLoading(false);
     }
   };
 
- const handleDeleteCoupon = async (id) => {
-  const confirmDelete = window.confirm("Are you sure you want to delete this coupon?");
-  if (!confirmDelete) return;
+  useEffect(() => { fetchCoupons(); }, []);
 
-  try {
+  const handleDeleteCoupon = async (id) => {
+    if (!window.confirm("Delete this coupon?")) return;
+
     await axios.delete(`http://31.97.206.144:7021/api/admin/deletecoupon/${id}`);
-    setCoupons(coupons.filter((coupon) => coupon._id !== id));
-    setMessage('✅ Coupon deleted successfully');
-    setMessageType('success');
-
-    // Clear message after 3 seconds
-    setTimeout(() => {
-      setMessage('');
-      setMessageType('');
-    }, 3000);
-
-  } catch (error) {
-    setMessage('❌ Failed to delete coupon');
-    setMessageType('error');
-
-    setTimeout(() => {
-      setMessage('');
-      setMessageType('');
-    }, 3000);
-  }
-};
-
+    setCoupons(coupons.filter((c) => c._id !== id));
+    setMessage("Coupon deleted successfully");
+    setMessageType("success");
+  };
 
   const handleEditCoupon = (coupon) => {
     setSelectedCoupon(coupon);
     setNewCouponCode(coupon.couponCode);
     setNewDiscountPercentage(coupon.discountPercentage);
-    setNewExpirationDate(coupon.expirationDate ? coupon.expirationDate.slice(0, 10) : '');
+    setNewExpirationDate(coupon.expirationDate?.slice(0,10) || "");
   };
 
   const handleUpdateCoupon = async () => {
-    try {
-      const updatedCoupon = {
-        couponCode: newCouponCode,
-        discountPercentage: newDiscountPercentage,
-        expirationDate: newExpirationDate,
-      };
+    const updatedCoupon = {
+      couponCode: newCouponCode,
+      discountPercentage: newDiscountPercentage,
+      expirationDate: newExpirationDate,
+    };
 
-      await axios.put(
-        `http://31.97.206.144:7021/api/admin/editcoupon/${selectedCoupon._id}`,
-        updatedCoupon
-      );
+    await axios.put(
+      `http://31.97.206.144:7021/api/admin/editcoupon/${selectedCoupon._id}`,
+      updatedCoupon
+    );
 
-      setCoupons(
-        coupons.map((coupon) =>
-          coupon._id === selectedCoupon._id
-            ? { ...coupon, ...updatedCoupon }
-            : coupon
-        )
-      );
-      setSelectedCoupon(null);
-      setMessage('Coupon updated successfully');
-      setMessageType('success');
-    } catch (error) {
-      setMessage('Failed to update coupon');
-      setMessageType('error');
-    }
+    setCoupons(coupons.map(c =>
+      c._id === selectedCoupon._id ? { ...c, ...updatedCoupon } : c
+    ));
+    setSelectedCoupon(null);
   };
 
-  useEffect(() => {
-    fetchCoupons();
-  }, []);
+  // ⭐ Pagination Logic
+  const totalPages = Math.ceil(coupons.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentCoupons = coupons.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen flex flex-col items-center">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">All Coupons</h2>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-8">
+
+      <h1 className="text-3xl font-bold mb-8 text-gray-800">🎟 Coupon Management</h1>
 
       {message && (
-        <div
-          className={`mb-4 px-4 py-2 rounded max-w-xl w-full text-center
-            ${messageType === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
-          role="alert"
-        >
+        <div className={`mb-6 p-3 rounded-lg w-fit 
+          ${messageType==="success"?"bg-green-100 text-green-700":"bg-red-100 text-red-700"}`}>
           {message}
         </div>
       )}
 
-      {loading ? (
-        <div className="text-center text-gray-600">Loading...</div>
-      ) : (
-        <div className="bg-white shadow-lg rounded-lg w-full max-w-4xl overflow-x-auto">
-          <table className="min-w-full border-collapse border border-gray-200">
-            <thead>
-              <tr className="bg-blue-100 text-gray-700 uppercase text-sm leading-normal">
-                <th className="py-3 px-6 text-left border-b border-gray-200">Coupon Code</th>
-                <th className="py-3 px-6 text-left border-b border-gray-200">Discount</th>
-                <th className="py-3 px-6 text-left border-b border-gray-200">Expiration Date</th>
-                <th className="py-3 px-6 text-center border-b border-gray-200">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-700 text-sm font-normal">
-              {coupons.length > 0 ? (
-                coupons.map((coupon) => (
-                  <tr
-                    key={coupon._id}
-                    className="hover:bg-gray-100 border-b border-gray-200"
-                  >
-                    <td className="py-3 px-6 whitespace-nowrap">{coupon.couponCode}</td>
-                    <td className="py-3 px-6">{coupon.discountPercentage}%</td>
-                    <td className="py-3 px-6">
-                      {coupon.expirationDate
-                        ? new Date(coupon.expirationDate).toLocaleDateString()
-                        : 'N/A'}
-                    </td>
-                    <td className="py-3 px-6 flex justify-center gap-4">
-                      <FiEdit3
-                        className="text-blue-600 cursor-pointer hover:text-blue-800"
-                        size={18}
+      {/* TABLE CARD */}
+      <div className="bg-white/80 backdrop-blur-xl border rounded-3xl shadow-xl overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead className="bg-blue-50">
+            <tr>
+              <th className="p-4">#</th>
+              <th className="p-4 text-left">Coupon</th>
+              <th className="p-4 text-left">Discount</th>
+              <th className="p-4 text-left">Expiry</th>
+              <th className="p-4 text-center">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {loading ? (
+              <tr><td colSpan="5" className="text-center p-10">Loading...</td></tr>
+            ) : currentCoupons.length > 0 ? (
+              currentCoupons.map((coupon, i) => (
+                <tr key={coupon._id} className="border-t hover:bg-gray-50">
+                  <td className="p-4 font-semibold">{startIndex + i + 1}</td>
+                  <td className="p-4">{coupon.couponCode}</td>
+                  <td className="p-4">{coupon.discountPercentage}%</td>
+                  <td className="p-4">
+                    {coupon.expirationDate
+                      ? new Date(coupon.expirationDate).toLocaleDateString()
+                      : "N/A"}
+                  </td>
+                  <td className="p-4">
+                    <div className="flex justify-center gap-3">
+                      <button
                         onClick={() => handleEditCoupon(coupon)}
-                        title="Edit Coupon"
-                      />
-                      <FiTrash2
-                        className="text-red-600 cursor-pointer hover:text-red-800"
-                        size={18}
+                        className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
+                      >
+                        <FiEdit3/>
+                      </button>
+                      <button
                         onClick={() => handleDeleteCoupon(coupon._id)}
-                        title="Delete Coupon"
-                      />
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4" className="text-center py-4 text-gray-500">
-                    No coupons available
+                        className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                      >
+                        <FiTrash2/>
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              ))
+            ) : (
+              <tr><td colSpan="5" className="text-center p-10">No coupons found</td></tr>
+            )}
+          </tbody>
+        </table>
+
+        {/* ⭐ Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 p-6 border-t">
+            <button disabled={currentPage===1}
+              onClick={()=>setCurrentPage(currentPage-1)}
+              className="px-4 py-2 border rounded-lg disabled:opacity-40">
+              Prev
+            </button>
+
+            {[...Array(totalPages)].map((_,i)=>(
+              <button key={i}
+                onClick={()=>setCurrentPage(i+1)}
+                className={`px-4 py-2 border rounded-lg ${
+                  currentPage===i+1 ? "bg-blue-600 text-white" : "hover:bg-gray-100"
+                }`}>
+                {i+1}
+              </button>
+            ))}
+
+            <button disabled={currentPage===totalPages}
+              onClick={()=>setCurrentPage(currentPage+1)}
+              className="px-4 py-2 border rounded-lg disabled:opacity-40">
+              Next
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* EDIT MODAL */}
+      {selectedCoupon && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl">
+            <h3 className="text-xl font-bold mb-4">Edit Coupon</h3>
+
+            <input className="w-full p-3 border rounded mb-3"
+              value={newCouponCode}
+              onChange={(e)=>setNewCouponCode(e.target.value)} />
+
+            <input type="number" className="w-full p-3 border rounded mb-3"
+              value={newDiscountPercentage}
+              onChange={(e)=>setNewDiscountPercentage(e.target.value)} />
+
+            <input type="date" className="w-full p-3 border rounded mb-4"
+              value={newExpirationDate}
+              onChange={(e)=>setNewExpirationDate(e.target.value)} />
+
+            <div className="flex justify-end gap-3">
+              <button onClick={()=>setSelectedCoupon(null)}
+                className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+              <button onClick={handleUpdateCoupon}
+                className="px-4 py-2 bg-blue-600 text-white rounded">Update</button>
+            </div>
+          </div>
         </div>
       )}
-
-      {/* Edit Popup Modal */}
-     {/* Edit Popup Modal */}
-{selectedCoupon && (
-  <div className="fixed inset-0 flex items-center justify-center bg-gray-300 bg-opacity-30 z-50 p-4">
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 overflow-y-auto max-h-[80vh]">
-      <h3 className="text-xl font-semibold mb-5 text-gray-800">Edit Coupon</h3>
-
-      <div className="space-y-5">
-        <div>
-          <label className="block mb-1 font-medium text-gray-700">Coupon Code</label>
-          <input
-            type="text"
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={newCouponCode}
-            onChange={(e) => setNewCouponCode(e.target.value)}
-            placeholder="Enter coupon code"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium text-gray-700">Discount Percentage (%)</label>
-          <input
-            type="number"
-            min="0"
-            max="100"
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={newDiscountPercentage}
-            onChange={(e) => setNewDiscountPercentage(e.target.value)}
-            placeholder="Enter discount percentage"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium text-gray-700">Expiration Date</label>
-          <input
-            type="date"
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={newExpirationDate}
-            onChange={(e) => setNewExpirationDate(e.target.value)}
-          />
-        </div>
-
-        <div className="flex justify-end gap-4 mt-6">
-          <button
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
-            onClick={() => setSelectedCoupon(null)}
-          >
-            Cancel
-          </button>
-          <button
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-            onClick={handleUpdateCoupon}
-          >
-            Update Coupon
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
 
     </div>
   );

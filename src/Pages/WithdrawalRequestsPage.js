@@ -171,6 +171,7 @@ const WithdrawalRequestsPage = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-blue-100">
                 <tr className="text-center">
+                  <th className="px-4 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider whitespace-nowrap border">S NO</th>
                   <th className="px-4 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider whitespace-nowrap border">Rider Info</th>
                   <th className="px-4 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider whitespace-nowrap border">Amount</th>
                   <th className="px-4 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider whitespace-nowrap border">Bank Details</th>
@@ -182,8 +183,11 @@ const WithdrawalRequestsPage = () => {
 
               <tbody className="bg-white divide-y divide-gray-200">
                 {currentRequests.length > 0 ? (
-                  currentRequests.map((r) => (
+                  currentRequests.map((r, index) => (
                     <tr key={r._id} className="text-center hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap border font-semibold">
+                      {(currentPage - 1)*rowsPerPage + index + 1}
+                      </td>
                       {/* Rider Info */}
                       <td className="px-4 py-3 text-sm border">
                         <div className="text-left">

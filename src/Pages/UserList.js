@@ -255,7 +255,7 @@ export default function UserList() {
             <table className="w-full table-auto">
               <thead className="bg-blue-600 text-white">
                 <tr>
-                  <th className="p-3 text-left">#</th>
+                  <th className="p-3 text-left">S NO</th>
                   <th className="p-3 text-left">Profile</th>
                   <th className="p-3 text-left">Name</th>
                   <th className="p-3 text-left">Mobile</th>

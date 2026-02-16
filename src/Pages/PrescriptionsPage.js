@@ -7,6 +7,7 @@ const PrescriptionsPage = () => {
   const [selectedPrescription, setSelectedPrescription] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 5;
+  const [total, setTotal] = useState(0);
 
   const fetchPrescriptions = async () => {
     try {
@@ -14,6 +15,7 @@ const PrescriptionsPage = () => {
         "http://31.97.206.144:7021/api/admin/alluploadprescription"
       );
       setPrescriptions(res.data.prescriptions || []);
+      setTotal(res.data.prescriptions.length || 0)
     } catch (error) {
       console.error("Error fetching prescriptions", error);
     }
@@ -53,13 +55,14 @@ const PrescriptionsPage = () => {
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        📄 All Received Prescriptions
+        📄 All Received Prescriptions ({total})
       </h2>
 
       <div className="overflow-x-auto shadow rounded-lg border border-gray-200">
         <table className="min-w-full bg-white text-sm">
           <thead className="bg-blue-100 text-gray-700 font-semibold">
             <tr>
+              <th className="p-3 text-left">S NO</th>
               <th className="p-3 text-left">User</th>
               <th className="p-3 text-left">Notes</th>
               <th className="p-3 text-left">Uploaded At</th>
@@ -71,11 +74,12 @@ const PrescriptionsPage = () => {
 
           <tbody>
             {paginatedData.length > 0 ? (
-              paginatedData.map((p) => (
+              paginatedData.map((p, index) => (
                 <tr
                   key={p._id}
                   className="border-t border-gray-200 hover:bg-gray-50"
                 >
+                  <td className="p-3">{(currentPage - 1)*pageSize + index + 1}</td>
                   <td className="p-3">{p.userId?.name || "Deleted User"}</td>
                   <td className="p-3">{p.notes || "-"}</td>
                   <td className="p-3">

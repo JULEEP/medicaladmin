@@ -63,35 +63,35 @@ export default function PharmacyList() {
     if (searchTerm.trim() === "") {
       setFilteredPharmacies(pharmacies);
     } else {
-     const filtered = pharmacies.filter(pharmacy =>
-  String(pharmacy.name || "")
-    .toLowerCase()
-    .includes(searchTerm.toLowerCase()) ||
+      const filtered = pharmacies.filter(pharmacy =>
+        String(pharmacy.name || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
 
-  String(pharmacy.vendorName || "")
-    .toLowerCase()
-    .includes(searchTerm.toLowerCase()) ||
+        String(pharmacy.vendorName || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
 
-  String(pharmacy.vendorEmail || "")
-    .toLowerCase()
-    .includes(searchTerm.toLowerCase()) ||
+        String(pharmacy.vendorEmail || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
 
-  String(pharmacy.vendorPhone || "")
-    .toLowerCase()
-    .includes(searchTerm.toLowerCase()) ||
+        String(pharmacy.vendorPhone || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
 
-  String(pharmacy.vendorId || "")
-    .toLowerCase()
-    .includes(searchTerm.toLowerCase()) ||
+        String(pharmacy.vendorId || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
 
-  String(pharmacy.status || "")
-    .toLowerCase()
-    .includes(searchTerm.toLowerCase()) ||
+        String(pharmacy.status || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
 
-  String(pharmacy.address || "")
-    .toLowerCase()
-    .includes(searchTerm.toLowerCase())
-);
+        String(pharmacy.address || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
+      );
 
       setFilteredPharmacies(filtered);
     }
@@ -119,7 +119,7 @@ export default function PharmacyList() {
   // CSV Download function
   const downloadCSV = () => {
     const headers = ["Name", "Vendor Name", "Vendor Email", "Vendor Phone", "Vendor ID", "Status", "Address", "Latitude", "Longitude", "Last Updated"];
-    
+
     const csvData = filteredPharmacies.map(pharmacy => [
       pharmacy.name || "",
       pharmacy.vendorName || "",
@@ -256,31 +256,31 @@ export default function PharmacyList() {
   };
 
   const updatePaymentStatus = async (month, status, amount) => {
-  try {
-    const res = await fetch(`http://31.97.206.144:7021/api/pharmacy/updatepayment/${revenueModal._id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        month,
-        status,
-        amount,  // send amount here
-      }),
-    });
+    try {
+      const res = await fetch(`http://31.97.206.144:7021/api/pharmacy/updatepayment/${revenueModal._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          month,
+          status,
+          amount,  // send amount here
+        }),
+      });
 
-    if (res.ok) {
-      // Handle successful status change
-      handlePaymentStatusChange(month, status);
-      
-      // Refetch pharmacies data if needed
-      fetchPharmacies();
+      if (res.ok) {
+        // Handle successful status change
+        handlePaymentStatusChange(month, status);
 
-      // Close the revenue modal after successful update
-      closeRevenueModal();
+        // Refetch pharmacies data if needed
+        fetchPharmacies();
+
+        // Close the revenue modal after successful update
+        closeRevenueModal();
+      }
+    } catch (error) {
+      console.error("Failed to update payment status:", error);
     }
-  } catch (error) {
-    console.error("Failed to update payment status:", error);
-  }
-};
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -318,7 +318,7 @@ export default function PharmacyList() {
                   Total: {filteredPharmacies.length} pharmacies
                 </span>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 {/* Search Filter */}
                 <div className="relative flex-1 sm:max-w-xs">
@@ -375,6 +375,9 @@ export default function PharmacyList() {
                     <thead className="bg-gray-50">
                       <tr>
                         <th scope="col" className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                          S NO
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                           Pharmacy
                         </th>
                         <th scope="col" className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -398,8 +401,13 @@ export default function PharmacyList() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {currentPharmacies.map((pharmacy) => (
+                      {currentPharmacies.map((pharmacy, index) => (
                         <tr key={pharmacy._id} className="hover:bg-gray-50 transition-colors duration-150">
+                          <td className="px-3 py-3">
+                            <div className="flex items-center justify-center">
+                              {(currentPage - 1) * itemsPerPage + index + 1}
+                            </div>
+                          </td>
                           {/* Pharmacy Column */}
                           <td className="px-3 py-3">
                             <div className="flex items-center">
@@ -421,17 +429,17 @@ export default function PharmacyList() {
                               </div>
                             </div>
                           </td>
-                          
+
                           {/* Location Column */}
                           <td className="px-3 py-3">
-                            <div 
-                              className="text-xs text-gray-600 break-words max-w-[120px] cursor-help" 
+                            <div
+                              className="text-xs text-gray-600 break-words max-w-[120px] cursor-help"
                               title={pharmacy.address}
                             >
                               {truncateText(pharmacy.address, 30)}
                             </div>
                           </td>
-                          
+
                           {/* Vendor Column */}
                           <td className="px-3 py-3">
                             <div className="min-w-0 flex-1">
@@ -443,20 +451,19 @@ export default function PharmacyList() {
                               </div>
                             </div>
                           </td>
-                          
+
                           {/* Status Column */}
                           <td className="px-3 py-3 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${
-                              pharmacy.status === "Active" 
-                                ? "bg-green-100 text-green-800 border border-green-200" 
-                                : pharmacy.status === "Suspended" 
-                                ? "bg-red-100 text-red-800 border border-red-200"
-                                : "bg-yellow-100 text-yellow-800 border border-yellow-200"
-                            }`}>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${pharmacy.status === "Active"
+                                ? "bg-green-100 text-green-800 border border-green-200"
+                                : pharmacy.status === "Suspended"
+                                  ? "bg-red-100 text-red-800 border border-red-200"
+                                  : "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                              }`}>
                               {pharmacy.status}
                             </span>
                           </td>
-                          
+
                           {/* Revenue Column */}
                           <td className="px-3 py-3 whitespace-nowrap">
                             {pharmacy.revenueByMonth ? (
@@ -476,7 +483,7 @@ export default function PharmacyList() {
                           <td className="px-3 py-3 whitespace-nowrap text-xs text-gray-500">
                             {new Date(pharmacy.updatedAt).toLocaleDateString('en-IN')}
                           </td>
-                          
+
                           {/* Actions Column */}
                           <td className="px-3 py-3 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex justify-end space-x-1">
@@ -534,11 +541,10 @@ export default function PharmacyList() {
                         <button
                           key={page}
                           onClick={() => paginate(page)}
-                          className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium rounded-md transition-colors duration-200 ${
-                            currentPage === page
+                          className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium rounded-md transition-colors duration-200 ${currentPage === page
                               ? "z-10 bg-blue-600 border-blue-600 text-white shadow-md"
                               : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
-                          }`}
+                            }`}
                         >
                           {page}
                         </button>
@@ -655,86 +661,85 @@ export default function PharmacyList() {
         </div>
       )}
 
-     {revenueModal && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 bg-black bg-opacity-50 backdrop-blur-sm">
-    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 z-10 relative border border-gray-200">
-      <h3 className="text-lg font-bold text-gray-900 mb-4">
-        Revenue Details - {revenueModal.name}
-      </h3>
+      {revenueModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 z-10 relative border border-gray-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              Revenue Details - {revenueModal.name}
+            </h3>
 
-      <div className="space-y-3 max-h-96 overflow-y-auto">
-        {revenueModal?.revenueByMonth &&
-        Object.keys(revenueModal.revenueByMonth).length > 0 ? (
-          Object.entries(revenueModal.revenueByMonth).map(([month, data]) => {
-            const selectedStatus = data.status || 'pending';
-            const amountToShow = selectedStatus === 'paid' ? 0 : (data.amount || 0);
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {revenueModal?.revenueByMonth &&
+                Object.keys(revenueModal.revenueByMonth).length > 0 ? (
+                Object.entries(revenueModal.revenueByMonth).map(([month, data]) => {
+                  const selectedStatus = data.status || 'pending';
+                  const amountToShow = selectedStatus === 'paid' ? 0 : (data.amount || 0);
 
-            return (
-              <div
-                key={month}
-                className="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
+                  return (
+                    <div
+                      key={month}
+                      className="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      <div>
+                        <div className="font-semibold text-gray-900 text-sm">{month}</div>
+                        <div className="text-xs text-gray-600 font-medium">
+                          ₹{amountToShow.toLocaleString('en-IN')}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <select
+                          value={selectedStatus}
+                          onChange={(e) => {
+                            if (selectedStatus === 'paid' && e.target.value === 'paid') {
+                              alert(`Payment for ${month} is already marked as 'paid'. No further updates allowed for this month.`);
+                              return;
+                            }
+                            updatePaymentStatus(month, e.target.value, data.amount || 0);
+                          }}
+                          className={`text-xs font-medium rounded-lg border px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 ${getStatusColor(selectedStatus)
+                            }`}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="paid">Paid</option>
+                          <option value="failed">Failed</option>
+                        </select>
+
+                        <button
+                          onClick={() => {
+                            if (selectedStatus === 'paid') {
+                              alert(`Payment for ${month} is already marked as 'paid'. No further updates allowed for this month.`);
+                              return;
+                            }
+                            updatePaymentStatus(month, selectedStatus, data.amount || 0);
+                          }}
+                          className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors duration-200"
+                        >
+                          Update
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-8 text-gray-500 text-sm">
+                  No revenue data available
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={() => closeRevenueModal()}
+                className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
               >
-                <div>
-                  <div className="font-semibold text-gray-900 text-sm">{month}</div>
-                  <div className="text-xs text-gray-600 font-medium">
-                    ₹{amountToShow.toLocaleString('en-IN')}
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <select
-                    value={selectedStatus}
-                    onChange={(e) => {
-                      if (selectedStatus === 'paid' && e.target.value === 'paid') {
-                        alert(`Payment for ${month} is already marked as 'paid'. No further updates allowed for this month.`);
-                        return;
-                      }
-                      updatePaymentStatus(month, e.target.value, data.amount || 0);
-                    }}
-                    className={`text-xs font-medium rounded-lg border px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                      getStatusColor(selectedStatus)
-                    }`}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="paid">Paid</option>
-                    <option value="failed">Failed</option>
-                  </select>
-
-                  <button
-                    onClick={() => {
-                      if (selectedStatus === 'paid') {
-                        alert(`Payment for ${month} is already marked as 'paid'. No further updates allowed for this month.`);
-                        return;
-                      }
-                      updatePaymentStatus(month, selectedStatus, data.amount || 0);
-                    }}
-                    className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors duration-200"
-                  >
-                    Update
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        ) : (
-          <div className="text-center py-8 text-gray-500 text-sm">
-            No revenue data available
+                Close
+              </button>
+            </div>
           </div>
-        )}
-      </div>
-
-      <div className="mt-6 flex justify-end">
-        <button
-          type="button"
-          onClick={() => closeRevenueModal()}
-          className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
-        >
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+        </div>
+      )}
 
     </div>
   );

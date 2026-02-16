@@ -13,7 +13,7 @@ export default function ActivePharmacyList() {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(8);
+  const [itemsPerPage] = useState(10);
 
   // Edit modal state
   const [editingPharmacy, setEditingPharmacy] = useState(null);
@@ -87,7 +87,7 @@ export default function ActivePharmacyList() {
   // CSV Download function
   const downloadCSV = () => {
     const headers = ["Name", "Vendor Name", "Vendor Email", "Vendor Phone", "Vendor ID", "Status", "Address", "Latitude", "Longitude", "Last Updated"];
-    
+
     const csvData = filteredPharmacies.map(pharmacy => [
       pharmacy.name || "",
       pharmacy.vendorName || "",
@@ -273,7 +273,7 @@ export default function ActivePharmacyList() {
                   Total: {filteredPharmacies.length} active pharmacies
                 </span>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 {/* Search Filter */}
                 <div className="relative flex-1 sm:max-w-xs">
@@ -330,6 +330,9 @@ export default function ActivePharmacyList() {
                     <thead className="bg-gray-50">
                       <tr>
                         <th scope="col" className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                          S NO
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                           Pharmacy
                         </th>
                         <th scope="col" className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -353,8 +356,13 @@ export default function ActivePharmacyList() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {currentPharmacies.map((pharmacy) => (
+                      {currentPharmacies.map((pharmacy,index) => (
                         <tr key={pharmacy._id} className="hover:bg-green-50 transition-colors duration-150">
+                          <td className="px-3 py-3">
+                            <div>
+                              {(currentPage - 1)*itemsPerPage + index + 1}
+                            </div>
+                          </td>
                           {/* Pharmacy Column */}
                           <td className="px-3 py-3">
                             <div className="flex items-center">
@@ -379,17 +387,17 @@ export default function ActivePharmacyList() {
                               </div>
                             </div>
                           </td>
-                          
+
                           {/* Location Column */}
                           <td className="px-3 py-3">
-                            <div 
-                              className="text-xs text-gray-600 break-words max-w-[120px] cursor-help" 
+                            <div
+                              className="text-xs text-gray-600 break-words max-w-[120px] cursor-help"
                               title={pharmacy.address}
                             >
                               {truncateText(pharmacy.address, 35)}
                             </div>
                           </td>
-                          
+
                           {/* Vendor Column */}
                           <td className="px-3 py-3">
                             <div className="min-w-0 flex-1">
@@ -404,14 +412,14 @@ export default function ActivePharmacyList() {
                               </div>
                             </div>
                           </td>
-                          
+
                           {/* Status Column */}
                           <td className="px-3 py-3 whitespace-nowrap">
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200">
                               {pharmacy.status}
                             </span>
                           </td>
-                          
+
                           {/* Revenue Column */}
                           <td className="px-3 py-3 whitespace-nowrap">
                             {pharmacy.revenueByMonth ? (
@@ -431,7 +439,7 @@ export default function ActivePharmacyList() {
                           <td className="px-3 py-3 whitespace-nowrap text-xs text-gray-500">
                             {new Date(pharmacy.updatedAt).toLocaleDateString('en-IN')}
                           </td>
-                          
+
                           {/* Actions Column */}
                           <td className="px-3 py-3 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex justify-end space-x-1">
@@ -489,11 +497,10 @@ export default function ActivePharmacyList() {
                         <button
                           key={page}
                           onClick={() => paginate(page)}
-                          className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium rounded-md transition-colors duration-200 ${
-                            currentPage === page
+                          className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium rounded-md transition-colors duration-200 ${currentPage === page
                               ? "z-10 bg-green-600 border-green-600 text-white shadow-md"
                               : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
-                          }`}
+                            }`}
                         >
                           {page}
                         </button>
@@ -618,7 +625,7 @@ export default function ActivePharmacyList() {
 
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {revenueModal?.revenueByMonth &&
-              Object.keys(revenueModal.revenueByMonth).length > 0 ? (
+                Object.keys(revenueModal.revenueByMonth).length > 0 ? (
                 Object.entries(revenueModal.revenueByMonth).map(([month, data]) => {
                   const selectedStatus = data.status || 'pending';
 
@@ -644,9 +651,8 @@ export default function ActivePharmacyList() {
                               data.amount || 0
                             )
                           }
-                          className={`text-xs font-medium rounded-lg border px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500 ${
-                            getStatusColor(selectedStatus)
-                          }`}
+                          className={`text-xs font-medium rounded-lg border px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500 ${getStatusColor(selectedStatus)
+                            }`}
                         >
                           <option value="pending">Pending</option>
                           <option value="paid">Paid</option>

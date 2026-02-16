@@ -87,7 +87,7 @@ export default function InactivePharmacyList() {
   // CSV Download function
   const downloadCSV = () => {
     const headers = ["Name", "Vendor Name", "Vendor Email", "Vendor Phone", "Vendor ID", "Status", "Address", "Latitude", "Longitude", "Last Updated"];
-    
+
     const csvData = filteredPharmacies.map(pharmacy => [
       pharmacy.name || "",
       pharmacy.vendorName || "",
@@ -272,7 +272,7 @@ export default function InactivePharmacyList() {
                 Total: {filteredPharmacies.length} inactive pharmacies
               </span>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
               {/* Search Filter - Left Side */}
               <div className="relative flex-1 max-w-md">
@@ -328,6 +328,9 @@ export default function InactivePharmacyList() {
                     <thead className="bg-gray-50">
                       <tr>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          S NO
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Pharmacy
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -351,82 +354,94 @@ export default function InactivePharmacyList() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {currentPharmacies.map((pharmacy) => (
-                        <tr key={pharmacy._id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="flex-shrink-0 h-10 w-10">
+                      {currentPharmacies.length === 0 ? (
+                        <tr>
+                          <td colSpan="8" className="text-center py-10 text-gray-500">
+                            No Pharmacies Found
+                          </td>
+                        </tr>
+                      ) : (
+                        currentPharmacies.map((pharmacy, index) => (
+                          <tr key={pharmacy._id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-3 py-3">
+                              {(currentPage - 1) * itemsPerPage + index + 1}
+                            </td>
+
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
                                 <img
                                   className="h-10 w-10 rounded-lg object-cover border"
                                   src={pharmacy.image || "https://via.placeholder.com/40"}
                                   alt={pharmacy.name}
                                   onError={(e) => (e.target.src = "https://via.placeholder.com/40")}
                                 />
+                                <div className="ml-4">
+                                  <div className="text-sm font-medium text-gray-900">{pharmacy.name}</div>
+                                  <div className="text-sm text-gray-500">VendorId: {pharmacy.vendorId}</div>
+                                  <div className="text-sm text-gray-500">Pass: {pharmacy.password}</div>
+                                </div>
                               </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">{pharmacy.name}</div>
-                                <div className="text-sm text-gray-500">VendorId: {pharmacy.vendorId}</div>
-                                <div className="text-sm text-gray-500">Pass: {pharmacy.password}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-500">{pharmacy.address}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{pharmacy.vendorName}</div>
-                            <div className="text-sm text-gray-500">{pharmacy.vendorEmail}</div>
-                            <div className="text-sm text-gray-500">{pharmacy.vendorPhone}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                              {pharmacy.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {pharmacy.revenueByMonth ? (
-                              <button
-                                onClick={() => openRevenueModal(pharmacy)}
-                                className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                              >
-                                <span className="mr-1">₹</span>
-                                View Revenue
-                              </button>
-                            ) : (
-                              <span className="text-sm text-gray-500">No data</span>
-                            )}
-                          </td>
+                            </td>
 
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(pharmacy.updatedAt).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={() => navigate(`/pharmacy/${pharmacy._id}`)}
-                                className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50"
-                                title="View Details"
-                              >
-                                <FiEye className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={() => openEditModal(pharmacy)}
-                                className="text-yellow-600 hover:text-yellow-900 p-1 rounded hover:bg-yellow-50"
-                                title="Edit Pharmacy"
-                              >
-                                <FiEdit className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(pharmacy._id)}
-                                className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50"
-                                title="Delete Pharmacy"
-                              >
-                                <FiTrash className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{pharmacy.address}</div>
+                            </td>
+
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{pharmacy.vendorName}</div>
+                              <div className="text-sm text-gray-500">{pharmacy.vendorEmail}</div>
+                              <div className="text-sm text-gray-500">{pharmacy.vendorPhone}</div>
+                            </td>
+
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                {pharmacy.status}
+                              </span>
+                            </td>
+
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              {pharmacy.revenueByMonth ? (
+                                <button
+                                  onClick={() => openRevenueModal(pharmacy)}
+                                  className="px-3 py-1 text-sm rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200"
+                                >
+                                  ₹ View Revenue
+                                </button>
+                              ) : (
+                                <span className="text-sm text-gray-500">No data</span>
+                              )}
+                            </td>
+
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(pharmacy.updatedAt).toLocaleDateString()}
+                            </td>
+
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                              <div className="flex justify-end space-x-2">
+                                <button
+                                  onClick={() => navigate(`/pharmacy/${pharmacy._id}`)}
+                                  className="text-blue-600 hover:text-blue-900"
+                                >
+                                  <FiEye />
+                                </button>
+                                <button
+                                  onClick={() => openEditModal(pharmacy)}
+                                  className="text-yellow-600 hover:text-yellow-900"
+                                >
+                                  <FiEdit />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(pharmacy._id)}
+                                  className="text-red-600 hover:text-red-900"
+                                >
+                                  <FiTrash />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+
                     </tbody>
                   </table>
                 </div>
@@ -584,7 +599,7 @@ export default function InactivePharmacyList() {
 
             <div className="space-y-3">
               {revenueModal?.revenueByMonth &&
-              Object.keys(revenueModal.revenueByMonth).length > 0 ? (
+                Object.keys(revenueModal.revenueByMonth).length > 0 ? (
                 Object.entries(revenueModal.revenueByMonth).map(([month, data]) => {
                   const selectedStatus = data.status || 'pending';
 
