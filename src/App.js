@@ -224,15 +224,15 @@ function App() {
               <Route path="/vendordocumentlist" element={<VendorDocumentList />} />
               <Route path="/redeemed-coupons" element={<RedeemedCouponsList />} />
               <Route path="/payment" element={<VendorInvoiceList />} />
-              <Route path="/rcvdpayment" element={< ReceivedPayments/>} />
-              <Route path="/allpayments" element={< AllPayments/>} />
+              <Route path="/rcvdpayment" element={< ReceivedPayments />} />
+              <Route path="/allpayments" element={< AllPayments />} />
               <Route path="/users/:id" element={<UserProfile />} />
               <Route path="/vendor/:id" element={<VendorProfile />} />
               <Route path="/category" element={<Category />} />
-               <Route path="/create-pharmacy" element={<CreatePharmacy />} />
-               <Route path="/pharmacylist" element={<PharmacyList />} />
-                 <Route path="/pharmacy/:pharmacyId" element={<PharmacyDetails />} />
-               <Route path="/add-medicine" element={<CreateMedicine />} />
+              <Route path="/create-pharmacy" element={<CreatePharmacy />} />
+              <Route path="/pharmacylist" element={<PharmacyList />} />
+              <Route path="/pharmacy/:pharmacyId" element={<PharmacyDetails />} />
+              <Route path="/add-medicine" element={<CreateMedicine />} />
               <Route path="/medicinelist" element={<MedicineList />} />
               <Route path="/medicine/:medicineId" element={<SingleMedicine />} />
               <Route path="/orderlist" element={<AllOrders />} />

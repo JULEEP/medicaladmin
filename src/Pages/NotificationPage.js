@@ -162,6 +162,7 @@ const NotificationPage = () => {
         <table className="w-full text-sm text-left">
           <thead className="bg-blue-100">
             <tr>
+              <th className="p-2 border">S NO</th> 
               <th className="p-2 border">Type</th>
               <th className="p-2 border">Message</th>
               <th className="p-2 border">Created At</th>
@@ -170,8 +171,9 @@ const NotificationPage = () => {
           </thead>
           <tbody className="bg-white">
             {currentItems.length > 0 ? (
-              currentItems.map((n) => (
+              currentItems.map((n, index) => (
                 <tr key={n._id} className="text-center border-t">
+                  <td className="p-2 border">{(currentPage - 1)*itemsPerPage + index +1}</td>
                   <td className="p-2 border">{n.type}</td>
                   <td className="p-2 border">{n.message}</td>
                   <td className="p-2 border">

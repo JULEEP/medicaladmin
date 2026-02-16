@@ -203,6 +203,7 @@ const QueriesPage = () => {
           <table className="w-full">
             <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
               <tr>
+                <th className="p-3 text-left">S NO</th>
                 <th className="p-3 text-left">Name</th>
                 <th>Email</th>
                 <th>Mobile</th>
@@ -213,11 +214,12 @@ const QueriesPage = () => {
             </thead>
 
             <tbody>
-              {paginatedQueries.map((q) => (
+              {paginatedQueries.map((q, index) => (
                 <tr
                   key={q._id}
                   className="border-t hover:bg-blue-50 transition"
                 >
+                  <td className="p-3 ">{(page - 1) * limit + index + 1}</td>
                   <td className="p-3 font-semibold">{q.name}</td>
                   <td>{q.email}</td>
                   <td>{q.mobile}</td>

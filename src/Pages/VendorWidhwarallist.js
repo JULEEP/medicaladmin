@@ -836,6 +836,9 @@ export default function AdminWithdrawalManagement() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        S NO
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Transaction ID
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -872,8 +875,11 @@ export default function AdminWithdrawalManagement() {
                         </td>
                       </tr>
                     ) : (
-                      filteredWithdrawals.map((withdrawal) => (
+                      filteredWithdrawals.map((withdrawal, index) => (
                         <tr key={withdrawal._id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4">
+                            {(currentPage - 1)*itemsPerPage + index +1}
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-mono font-medium text-gray-900">
                               {withdrawal.transactionId}
@@ -894,7 +900,7 @@ export default function AdminWithdrawalManagement() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-lg font-bold text-gray-900 flex items-center">
-                              <FaRupeeSign className="mr-1" />
+                              {/* <FaRupeeSign className="mr-1" /> */}
                               {formatCurrency(withdrawal.amount)}
                             </div>
                           </td>
