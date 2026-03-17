@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FiEdit, FiTrash, FiEye, FiDollarSign, FiChevronLeft, FiChevronRight, FiCheck, FiX, FiDownload, FiSearch } from "react-icons/fi";
+import { FiEdit, FiTrash, FiEye, FiDollarSign, FiChevronLeft, FiChevronRight, FiDownload, FiSearch, FiRefreshCw, FiInbox, FiAlertCircle } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 export default function InactivePharmacyList() {
@@ -73,7 +73,7 @@ export default function InactivePharmacyList() {
       );
       setFilteredPharmacies(filtered);
     }
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
   }, [searchTerm, pharmacies]);
 
   // Pagination calculations
@@ -193,7 +193,6 @@ export default function InactivePharmacyList() {
 
       alert("Pharmacy deleted successfully!");
       fetchInactivePharmacies();
-      // Reset to first page if current page becomes empty
       if (currentPharmacies.length === 1 && currentPage > 1) {
         setCurrentPage(currentPage - 1);
       }
@@ -204,7 +203,6 @@ export default function InactivePharmacyList() {
 
   const openRevenueModal = (pharmacy) => {
     setRevenueModal(pharmacy);
-    // Initialize payment status
     if (pharmacy.revenueByMonth) {
       const statusObj = {};
       Object.keys(pharmacy.revenueByMonth).forEach(month => {
@@ -253,18 +251,17 @@ export default function InactivePharmacyList() {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+  // Refresh function
+  const handleRefresh = () => {
+    setSearchTerm("");
+    fetchInactivePharmacies();
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-sm border">
-          {/* Header with Search and Download */}
+          {/* Header */}
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-2xl font-bold text-gray-900">Inactive Pharmacy Management</h1>
@@ -274,7 +271,7 @@ export default function InactivePharmacyList() {
             </div>
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
-              {/* Search Filter - Left Side */}
+              {/* Search */}
               <div className="relative flex-1 max-w-md">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FiSearch className="h-5 w-5 text-gray-400" />
@@ -284,11 +281,11 @@ export default function InactivePharmacyList() {
                   placeholder="Search inactive pharmacies..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
 
-              {/* CSV Download - Right Side */}
+              {/* CSV Download */}
               <button
                 onClick={downloadCSV}
                 disabled={filteredPharmacies.length === 0}
@@ -306,184 +303,167 @@ export default function InactivePharmacyList() {
             </div>
           )}
 
-          {error && (
-            <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <FiX className="h-5 w-5 text-red-400" />
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">Error</h3>
-                  <div className="mt-1 text-sm text-red-700">{error}</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!loading && !error && (
+          {!loading && (
             <>
+              {/* Table Structure - Always Show */}
               <div className="overflow-x-auto">
-                <div className="inline-block min-w-full align-middle">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S NO</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pharmacy</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {error ? (
                       <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          S NO
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Pharmacy
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Location
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Vendor
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Revenue
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Last Updated
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
+                        <td colSpan="8" className="px-6 py-12 text-center">
+                          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-3">
+                            <FiAlertCircle className="h-8 w-8 text-red-500" />
+                          </div>
+                          <h3 className="text-base font-medium text-gray-900 mb-1">{error}</h3>
+                          <p className="text-sm text-gray-500 mb-3">Click below to try again</p>
+                        
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {currentPharmacies.length === 0 ? (
-                        <tr>
-                          <td colSpan="8" className="text-center py-10 text-gray-500">
-                            No Pharmacies Found
+                    ) : filteredPharmacies.length === 0 ? (
+                      <tr>
+                        <td colSpan="8" className="px-6 py-12 text-center">
+                          <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-3">
+                            <FiInbox className="h-8 w-8 text-gray-400" />
+                          </div>
+                          <h3 className="text-base font-medium text-gray-900 mb-1">No inactive pharmacies found</h3>
+                          <p className="text-sm text-gray-500">
+                            {searchTerm ? `No results match "${searchTerm}"` : "All pharmacies are currently active"}
+                          </p>
+                          {searchTerm && (
+                            <button
+                              onClick={() => setSearchTerm("")}
+                              className="mt-3 inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+                            >
+                              Clear Search
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ) : (
+                      currentPharmacies.map((pharmacy, index) => (
+                        <tr key={pharmacy._id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {(currentPage - 1) * itemsPerPage + index + 1}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <img
+                                className="h-10 w-10 rounded-lg object-cover border"
+                                src={pharmacy.image || "https://via.placeholder.com/40"}
+                                alt={pharmacy.name}
+                                onError={(e) => (e.target.src = "https://via.placeholder.com/40")}
+                              />
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-gray-900">{pharmacy.name}</div>
+                                <div className="text-xs text-gray-500">ID: {pharmacy.vendorId}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-500 max-w-xs truncate">{pharmacy.address}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm font-medium text-gray-900">{pharmacy.vendorName}</div>
+                            <div className="text-xs text-gray-500">{pharmacy.vendorEmail}</div>
+                            <div className="text-xs text-gray-500">{pharmacy.vendorPhone}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              {pharmacy.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {pharmacy.revenueByMonth && Object.keys(pharmacy.revenueByMonth).length > 0 ? (
+                              <button
+                                onClick={() => openRevenueModal(pharmacy)}
+                                className="px-3 py-1 text-sm rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200"
+                              >
+                                ₹ View Revenue
+                              </button>
+                            ) : (
+                              <span className="text-sm text-gray-400">No data</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(pharmacy.updatedAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div className="flex justify-end space-x-3">
+                              <button
+                                onClick={() => navigate(`/pharmacy/${pharmacy._id}`)}
+                                className="text-blue-600 hover:text-blue-900"
+                                title="View"
+                              >
+                                <FiEye className="h-5 w-5" />
+                              </button>
+                              <button
+                                onClick={() => openEditModal(pharmacy)}
+                                className="text-yellow-600 hover:text-yellow-900"
+                                title="Edit"
+                              >
+                                <FiEdit className="h-5 w-5" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(pharmacy._id)}
+                                className="text-red-600 hover:text-red-900"
+                                title="Delete"
+                              >
+                                <FiTrash className="h-5 w-5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
-                      ) : (
-                        currentPharmacies.map((pharmacy, index) => (
-                          <tr key={pharmacy._id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-3 py-3">
-                              {(currentPage - 1) * itemsPerPage + index + 1}
-                            </td>
-
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <img
-                                  className="h-10 w-10 rounded-lg object-cover border"
-                                  src={pharmacy.image || "https://via.placeholder.com/40"}
-                                  alt={pharmacy.name}
-                                  onError={(e) => (e.target.src = "https://via.placeholder.com/40")}
-                                />
-                                <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900">{pharmacy.name}</div>
-                                  <div className="text-sm text-gray-500">VendorId: {pharmacy.vendorId}</div>
-                                  <div className="text-sm text-gray-500">Pass: {pharmacy.password}</div>
-                                </div>
-                              </div>
-                            </td>
-
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-500">{pharmacy.address}</div>
-                            </td>
-
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">{pharmacy.vendorName}</div>
-                              <div className="text-sm text-gray-500">{pharmacy.vendorEmail}</div>
-                              <div className="text-sm text-gray-500">{pharmacy.vendorPhone}</div>
-                            </td>
-
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                {pharmacy.status}
-                              </span>
-                            </td>
-
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              {pharmacy.revenueByMonth ? (
-                                <button
-                                  onClick={() => openRevenueModal(pharmacy)}
-                                  className="px-3 py-1 text-sm rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200"
-                                >
-                                  ₹ View Revenue
-                                </button>
-                              ) : (
-                                <span className="text-sm text-gray-500">No data</span>
-                              )}
-                            </td>
-
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {new Date(pharmacy.updatedAt).toLocaleDateString()}
-                            </td>
-
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              <div className="flex justify-end space-x-2">
-                                <button
-                                  onClick={() => navigate(`/pharmacy/${pharmacy._id}`)}
-                                  className="text-blue-600 hover:text-blue-900"
-                                >
-                                  <FiEye />
-                                </button>
-                                <button
-                                  onClick={() => openEditModal(pharmacy)}
-                                  className="text-yellow-600 hover:text-yellow-900"
-                                >
-                                  <FiEdit />
-                                </button>
-                                <button
-                                  onClick={() => handleDelete(pharmacy._id)}
-                                  className="text-red-600 hover:text-red-900"
-                                >
-                                  <FiTrash />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-
-                    </tbody>
-                  </table>
-                </div>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
 
               {/* Pagination */}
-              {totalPages > 1 && (
+              {filteredPharmacies.length > 0 && totalPages > 1 && (
                 <div className="px-6 py-4 border-t border-gray-200">
-                  <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
-                    <div className="text-sm text-gray-700">
-                      Showing <span className="font-medium">{indexOfFirstItem + 1}</span> to{" "}
-                      <span className="font-medium">
-                        {Math.min(indexOfLastItem, filteredPharmacies.length)}
-                      </span>{" "}
-                      of <span className="font-medium">{filteredPharmacies.length}</span> results
+                  <div className="flex flex-col sm:flex-row items-center justify-between">
+                    <div className="text-sm text-gray-700 mb-3 sm:mb-0">
+                      Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredPharmacies.length)} of {filteredPharmacies.length} results
                     </div>
                     <div className="flex space-x-2">
                       <button
                         onClick={() => paginate(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 border rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                       >
                         <FiChevronLeft className="h-4 w-4" />
                       </button>
-
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                         <button
                           key={page}
                           onClick={() => paginate(page)}
-                          className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium rounded-md ${currentPage === page
-                            ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                            }`}
+                          className={`px-3 py-1 border rounded-md ${
+                            currentPage === page
+                              ? "bg-blue-600 text-white border-blue-600"
+                              : "text-gray-700 bg-white hover:bg-gray-50"
+                          }`}
                         >
                           {page}
                         </button>
                       ))}
-
                       <button
                         onClick={() => paginate(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        className="relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 border rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                       >
                         <FiChevronRight className="h-4 w-4" />
                       </button>
@@ -498,42 +478,39 @@ export default function InactivePharmacyList() {
 
       {/* Edit Modal */}
       {editingPharmacy && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 bg-gray-500 bg-opacity-75 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 z-10 relative">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Edit Pharmacy</h3>
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-gray-500 bg-opacity-75">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Pharmacy</h3>
             {editError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                <div className="text-sm text-red-700">{editError}</div>
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+                {editError}
               </div>
             )}
-
             {editMessage && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
-                <div className="text-sm text-green-700">{editMessage}</div>
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-700">
+                {editMessage}
               </div>
             )}
-
             <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                   <input
                     type="text"
                     name="name"
                     value={editForm.name}
                     onChange={handleEditChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="w-full border rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Status</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                   <select
                     name="status"
                     value={editForm.status}
                     onChange={handleEditChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="w-full border rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
@@ -541,10 +518,9 @@ export default function InactivePharmacyList() {
                   </select>
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Latitude</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
                   <input
                     type="number"
                     step="any"
@@ -552,11 +528,11 @@ export default function InactivePharmacyList() {
                     value={editForm.latitude}
                     onChange={handleEditChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="w-full border rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Longitude</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
                   <input
                     type="number"
                     step="any"
@@ -564,23 +540,22 @@ export default function InactivePharmacyList() {
                     value={editForm.longitude}
                     onChange={handleEditChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="w-full border rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
-
               <div className="flex justify-end space-x-3 pt-4">
                 <button
                   type="button"
                   onClick={closeEditModal}
-                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-4 py-2 border rounded-md text-gray-700 bg-white hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={editLoading}
-                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                 >
                   {editLoading ? "Saving..." : "Save Changes"}
                 </button>
@@ -590,78 +565,39 @@ export default function InactivePharmacyList() {
         </div>
       )}
 
+      {/* Revenue Modal */}
       {revenueModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 bg-gray-500 bg-opacity-75 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 z-10 relative">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-              Revenue Details - {revenueModal.name}
-            </h3>
-
-            <div className="space-y-3">
-              {revenueModal?.revenueByMonth &&
-                Object.keys(revenueModal.revenueByMonth).length > 0 ? (
-                Object.entries(revenueModal.revenueByMonth).map(([month, data]) => {
-                  const selectedStatus = data.status || 'pending';
-
-                  return (
-                    <div
-                      key={month}
-                      className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
-                    >
-                      <div>
-                        <div className="font-medium text-gray-900">{month}</div>
-                        <div className="text-sm text-gray-500">
-                          ₹{(data.amount || 0).toLocaleString('en-IN')}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <select
-                          value={selectedStatus}
-                          onChange={(e) =>
-                            updatePaymentStatus(
-                              month,
-                              e.target.value,
-                              data.amount || 0
-                            )
-                          }
-                          className={`text-xs font-medium rounded-md border px-2 py-1 ${getStatusColor(
-                            selectedStatus
-                          )}`}
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="paid">Paid</option>
-                          <option value="failed">Failed</option>
-                        </select>
-
-                        <button
-                          onClick={() =>
-                            updatePaymentStatus(
-                              month,
-                              selectedStatus,
-                              data.amount || 0
-                            )
-                          }
-                          className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-sm"
-                        >
-                          Update
-                        </button>
-                      </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-gray-500 bg-opacity-75">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Revenue Details</h3>
+            <p className="text-sm text-gray-600 mb-4">{revenueModal.name}</p>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {revenueModal?.revenueByMonth && Object.keys(revenueModal.revenueByMonth).length > 0 ? (
+                Object.entries(revenueModal.revenueByMonth).map(([month, data]) => (
+                  <div key={month} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <div className="font-medium">{month}</div>
+                      <div className="text-sm text-gray-500">₹{(data.amount || 0).toLocaleString('en-IN')}</div>
                     </div>
-                  );
-                })
+                    <select
+                      value={data.status || 'pending'}
+                      onChange={(e) => updatePaymentStatus(month, e.target.value, data.amount || 0)}
+                      className={`text-xs font-medium rounded-md border px-2 py-1 ${getStatusColor(data.status || 'pending')}`}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="paid">Paid</option>
+                      <option value="failed">Failed</option>
+                    </select>
+                  </div>
+                ))
               ) : (
-                <div className="text-center py-4 text-gray-500">
-                  No revenue data available
-                </div>
+                <div className="text-center py-8 text-gray-500">No revenue data available</div>
               )}
             </div>
-
             <div className="mt-6 flex justify-end">
               <button
-                type="button"
                 onClick={closeRevenueModal}
-                className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="px-4 py-2 border rounded-md text-gray-700 bg-white hover:bg-gray-50"
               >
                 Close
               </button>

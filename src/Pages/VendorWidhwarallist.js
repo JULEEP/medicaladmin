@@ -25,7 +25,7 @@ import {
   FaBuilding,
   FaInfoCircle,
   FaCreditCard,
-  FaKey
+  FaKey,
 } from "react-icons/fa";
 
 export default function AdminWithdrawalManagement() {
@@ -55,23 +55,23 @@ export default function AdminWithdrawalManagement() {
   const [stats, setStats] = useState({
     total: 0,
     requested: 0,
-    processing: 0,
     approved: 0,
     rejected: 0,
     completed: 0,
-    failed: 0
+    failed: 0,
+    cancelled: 0
   });
 
   // Fetch all withdrawal requests
   useEffect(() => {
     fetchWithdrawals();
-  }, [currentPage, statusFilter]);
+  }, [currentPage]);
 
   const fetchWithdrawals = async () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://31.97.206.144:7021/api/admin/allvendorwidrawal?page=${currentPage}&limit=${itemsPerPage}&status=${statusFilter === "all" ? "" : statusFilter}`
+        `http://31.97.206.144:7021/api/admin/allvendorwidrawal?page=${currentPage}&limit=${itemsPerPage}`
       );
       const data = await response.json();
 
@@ -83,12 +83,9 @@ export default function AdminWithdrawalManagement() {
       setTotalPages(data.pagination?.pages || 1);
       
       // Calculate stats from data
-      if (data.withdrawals) {
-        calculateStats(data.withdrawals);
-      }
+      calculateStats(data.withdrawals || []);
     } catch (err) {
       setError(err.message);
-      alert(`Error: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -98,27 +95,35 @@ export default function AdminWithdrawalManagement() {
     const statsObj = {
       total: withdrawalData.length,
       requested: 0,
-      processing: 0,
       approved: 0,
       rejected: 0,
       completed: 0,
-      failed: 0
+      failed: 0,
+      cancelled: 0
     };
 
     withdrawalData.forEach(item => {
-      const status = item.status?.toLowerCase();
-      if (statsObj.hasOwnProperty(status)) {
-        statsObj[status]++;
-      } else if (status === "pending") {
-        statsObj.requested++;
-      }
+      const status = item.status?.toLowerCase() || '';
+      if (status === 'requested') statsObj.requested++;
+      else if (status === 'approved') statsObj.approved++;
+      else if (status === 'rejected') statsObj.rejected++;
+      else if (status === 'completed') statsObj.completed++;
+      else if (status === 'failed') statsObj.failed++;
+      else if (status === 'cancelled') statsObj.cancelled++;
     });
 
     setStats(statsObj);
   };
 
-  // Filter withdrawals based on search term
+  // Filter withdrawals based on search term AND status
   const filteredWithdrawals = withdrawals.filter(withdrawal => {
+    // Status filter
+    if (statusFilter !== "all") {
+      const statusMatch = withdrawal.status?.toLowerCase() === statusFilter.toLowerCase();
+      if (!statusMatch) return false;
+    }
+    
+    // Search filter
     if (!searchTerm) return true;
     
     const searchLower = searchTerm.toLowerCase();
@@ -133,6 +138,17 @@ export default function AdminWithdrawalManagement() {
       withdrawal.amount?.toString().includes(searchTerm)
     );
   });
+
+  // Pagination for filtered results
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredWithdrawals.slice(indexOfFirstItem, indexOfLastItem);
+  const filteredTotalPages = Math.ceil(filteredWithdrawals.length / itemsPerPage);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   // View withdrawal details
   const handleViewWithdrawal = (withdrawal) => {
@@ -192,6 +208,13 @@ export default function AdminWithdrawalManagement() {
     }
   };
 
+  // Refresh function
+  const handleRefresh = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    fetchWithdrawals();
+  };
+
   // Export to CSV
   const exportToCSV = () => {
     const headers = [
@@ -208,7 +231,7 @@ export default function AdminWithdrawalManagement() {
       "Request Date"
     ];
 
-    const csvData = withdrawals.map(withdrawal => [
+    const csvData = filteredWithdrawals.map(withdrawal => [
       withdrawal.transactionId || "N/A",
       withdrawal.vendor?.vendorName || "N/A",
       withdrawal.vendor?.vendorEmail || "N/A",
@@ -235,8 +258,6 @@ export default function AdminWithdrawalManagement() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
-    alert("Data exported successfully!");
   };
 
   // Format currency
@@ -272,20 +293,19 @@ export default function AdminWithdrawalManagement() {
   const getStatusBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
       case "requested":
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "processing":
-        return "bg-blue-100 text-blue-800";
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
       case "approved":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-800 border-green-200";
       case "completed":
-        return "bg-emerald-100 text-emerald-800";
+        return "bg-emerald-100 text-emerald-800 border-emerald-200";
       case "rejected":
+        return "bg-red-100 text-red-800 border-red-200";
       case "failed":
+        return "bg-red-100 text-red-800 border-red-200";
       case "cancelled":
-        return "bg-red-100 text-red-800";
+        return "bg-gray-100 text-gray-800 border-gray-200";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -293,27 +313,24 @@ export default function AdminWithdrawalManagement() {
   const getStatusIcon = (status) => {
     switch (status?.toLowerCase()) {
       case "requested":
-      case "pending":
         return <FaClock className="mr-1" />;
-      case "processing":
-        return <FaSpinner className="mr-1 animate-spin" />;
       case "approved":
         return <FaCheck className="mr-1" />;
       case "completed":
         return <FaCheckCircle className="mr-1" />;
       case "rejected":
       case "failed":
-      case "cancelled":
         return <FaBan className="mr-1" />;
+      case "cancelled":
+        return <FaTimesCircle className="mr-1" />;
       default:
         return <FaInfoCircle className="mr-1" />;
     }
   };
 
-  // Format account number - Show full number
+  // Format account number
   const formatAccountNumber = (accountNumber) => {
     if (!accountNumber) return 'N/A';
-    // Show complete account number without masking
     return accountNumber;
   };
 
@@ -334,7 +351,6 @@ export default function AdminWithdrawalManagement() {
                 onClick={() => setShowViewModal(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
-                <FaTimesCircle className="w-6 h-6" />
               </button>
             </div>
 
@@ -469,15 +485,7 @@ export default function AdminWithdrawalManagement() {
                       <FaKey className="text-gray-400 mr-3" />
                       <div>
                         <p className="text-sm text-gray-600">IFSC Code</p>
-                        <p className="font-mono font-medium text-lg">{selectedWithdrawal.bankAccount?.ifscCode || 'N/A'}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <FaInfoCircle className="text-gray-400 mr-3" />
-                      <div>
-                        <p className="text-sm text-gray-600">Bank Account ID</p>
-                        <p className="font-mono font-medium">{selectedWithdrawal.bankAccount?._id || 'N/A'}</p>
+                        <p className="font-mono font-medium">{selectedWithdrawal.bankAccount?.ifscCode || 'N/A'}</p>
                       </div>
                     </div>
                   </div>
@@ -513,7 +521,10 @@ export default function AdminWithdrawalManagement() {
 
             <div className="mt-6 flex space-x-3">
               <button
-                onClick={() => handleUpdateStatus(selectedWithdrawal)}
+                onClick={() => {
+                  setShowViewModal(false);
+                  handleUpdateStatus(selectedWithdrawal);
+                }}
                 className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
               >
                 <FaEdit className="mr-2" />
@@ -548,7 +559,6 @@ export default function AdminWithdrawalManagement() {
                 className="text-gray-500 hover:text-gray-700"
                 disabled={updatingStatus}
               >
-                <FaTimesCircle className="w-6 h-6" />
               </button>
             </div>
 
@@ -567,17 +577,15 @@ export default function AdminWithdrawalManagement() {
                   disabled={updatingStatus}
                 >
                   <option value="">Select Status</option>
-                  <option value="requested">Requested</option>
-                  <option value="processing">Processing</option>
-                  <option value="approved">Approved</option>
-                  <option value="completed">Completed</option>
-                  <option value="rejected">Rejected</option>
-                  <option value="failed">Failed</option>
-                  <option value="cancelled">Cancelled</option>
+                  <option value="Requested">Requested</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Failed">Failed</option>
+                  <option value="Cancelled">Cancelled</option>
                 </select>
               </div>
 
-            
               <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
                 <div className="flex">
                   <FaExclamationTriangle className="text-yellow-500 mr-3 mt-0.5" />
@@ -624,91 +632,110 @@ export default function AdminWithdrawalManagement() {
 
   // Status Filter Component
   const StatusFilter = () => (
-    <div className="flex space-x-2 overflow-x-auto pb-2">
+    <div className="flex flex-wrap gap-2">
       <button
         onClick={() => setStatusFilter("all")}
-        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center whitespace-nowrap ${statusFilter === "all" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+          statusFilter === "all" 
+            ? "bg-blue-600 text-white" 
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
       >
         <FaFilter className="mr-1" />
         All ({stats.total})
       </button>
       <button
         onClick={() => setStatusFilter("requested")}
-        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center whitespace-nowrap ${statusFilter === "requested" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+          statusFilter === "requested" 
+            ? "bg-yellow-600 text-white" 
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
       >
         <FaClock className="mr-1" />
         Requested ({stats.requested})
       </button>
       <button
-        onClick={() => setStatusFilter("processing")}
-        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center whitespace-nowrap ${statusFilter === "processing" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
-      >
-        <FaSpinner className="mr-1" />
-        Processing ({stats.processing})
-      </button>
-      <button
         onClick={() => setStatusFilter("approved")}
-        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center whitespace-nowrap ${statusFilter === "approved" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+          statusFilter === "approved" 
+            ? "bg-green-600 text-white" 
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
       >
         <FaCheck className="mr-1" />
         Approved ({stats.approved})
       </button>
       <button
         onClick={() => setStatusFilter("completed")}
-        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center whitespace-nowrap ${statusFilter === "completed" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+          statusFilter === "completed" 
+            ? "bg-emerald-600 text-white" 
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
       >
         <FaCheckCircle className="mr-1" />
         Completed ({stats.completed})
+      </button>
+      <button
+        onClick={() => setStatusFilter("rejected")}
+        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+          statusFilter === "rejected" 
+            ? "bg-red-600 text-white" 
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
+      >
+        <FaBan className="mr-1" />
+        Rejected ({stats.rejected})
+      </button>
+      <button
+        onClick={() => setStatusFilter("failed")}
+        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+          statusFilter === "failed" 
+            ? "bg-red-600 text-white" 
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
+      >
+        <FaTimesCircle className="mr-1" />
+        Failed ({stats.failed})
+      </button>
+      <button
+        onClick={() => setStatusFilter("cancelled")}
+        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+          statusFilter === "cancelled" 
+            ? "bg-gray-600 text-white" 
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
+      >
+        <FaTimesCircle className="mr-1" />
+        Cancelled ({stats.cancelled})
       </button>
     </div>
   );
 
   // Pagination Component
   const Pagination = () => (
-    <div className="flex justify-center items-center mt-6">
+    <div className="flex justify-center items-center space-x-2">
       <button
         onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
         disabled={currentPage === 1}
-        className="px-4 py-2 mx-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+        className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
       >
-        <FaChevronLeft className="mr-1" />
+        <FaChevronLeft className="mr-1 h-3 w-3" />
         Previous
       </button>
       
-      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-        let pageNum;
-        if (totalPages <= 5) {
-          pageNum = i + 1;
-        } else if (currentPage <= 3) {
-          pageNum = i + 1;
-        } else if (currentPage >= totalPages - 2) {
-          pageNum = totalPages - 4 + i;
-        } else {
-          pageNum = currentPage - 2 + i;
-        }
-        
-        return (
-          <button
-            key={pageNum}
-            onClick={() => setCurrentPage(pageNum)}
-            className={`px-4 py-2 mx-1 text-sm font-medium rounded-lg ${
-              currentPage === pageNum
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-100'
-            }`}
-          >
-            {pageNum}
-          </button>
-        );
-      })}
+      <span className="px-4 py-2 text-sm text-gray-700">
+        Page {currentPage} of {filteredTotalPages}
+      </span>
       
       <button
-        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-        disabled={currentPage === totalPages}
-        className="px-4 py-2 mx-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+        onClick={() => setCurrentPage(prev => Math.min(filteredTotalPages, prev + 1))}
+        disabled={currentPage === filteredTotalPages}
+        className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
       >
         Next
-        <FaChevronRight className="ml-1" />
+        <FaChevronRight className="ml-1 h-3 w-3" />
       </button>
     </div>
   );
@@ -730,13 +757,23 @@ export default function AdminWithdrawalManagement() {
               <p className="text-gray-600 mt-2">Manage and track vendor withdrawal requests</p>
             </div>
             
-            <button
-              onClick={exportToCSV}
-              className="mt-4 md:mt-0 px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center"
-            >
-              <FaDownload className="mr-2" />
-              Export to CSV
-            </button>
+            <div className="flex space-x-2 mt-4 md:mt-0">
+              <button
+                onClick={handleRefresh}
+                className="px-4 py-2 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 transition-colors flex items-center"
+              >
+                <FaHistory className="mr-2" />
+                Refresh
+              </button>
+              <button
+                onClick={exportToCSV}
+                disabled={filteredWithdrawals.length === 0}
+                className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FaDownload className="mr-2" />
+                Export CSV
+              </button>
+            </div>
           </div>
 
           {/* Search Bar */}
@@ -750,7 +787,7 @@ export default function AdminWithdrawalManagement() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Search by Transaction ID, Vendor Name, Email, Phone, Bank Name, Account Number..."
+                placeholder="Search by Transaction ID, Vendor Name, Email, Phone, Bank Details..."
               />
             </div>
           </div>
@@ -762,25 +799,34 @@ export default function AdminWithdrawalManagement() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="bg-white rounded-xl shadow-lg p-12">
+            <div className="flex flex-col items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600"></div>
+              <p className="mt-4 text-gray-500">Loading withdrawal requests...</p>
+            </div>
           </div>
         ) : error ? (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <FaExclamationTriangle className="h-5 w-5 text-red-500" />
+          <div className="bg-white rounded-xl shadow-lg p-12">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                <FaExclamationTriangle className="h-8 w-8 text-red-500" />
               </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to load data</h3>
+              <p className="text-sm text-gray-500 mb-4">{error}</p>
+              <button
+                onClick={handleRefresh}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                <FaHistory className="mr-2 h-4 w-4" />
+                Try Again
+              </button>
             </div>
           </div>
         ) : (
           <>
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-white rounded-xl p-4 shadow">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-500 text-sm">Total Requests</p>
@@ -792,10 +838,10 @@ export default function AdminWithdrawalManagement() {
                 </div>
               </div>
               
-              <div className="bg-white rounded-xl p-4 shadow">
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-500 text-sm">Pending</p>
+                    <p className="text-gray-500 text-sm">Requested</p>
                     <p className="text-2xl font-bold text-yellow-600">{stats.requested}</p>
                   </div>
                   <div className="bg-yellow-50 p-3 rounded-full">
@@ -804,19 +850,7 @@ export default function AdminWithdrawalManagement() {
                 </div>
               </div>
               
-              <div className="bg-white rounded-xl p-4 shadow">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-500 text-sm">Processing</p>
-                    <p className="text-2xl font-bold text-blue-600">{stats.processing}</p>
-                  </div>
-                  <div className="bg-blue-50 p-3 rounded-full">
-                    <FaSpinner className="w-6 h-6 text-blue-600" />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-xl p-4 shadow">
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-500 text-sm">Completed</p>
@@ -827,125 +861,133 @@ export default function AdminWithdrawalManagement() {
                   </div>
                 </div>
               </div>
+              
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-500 text-sm">Rejected/Failed</p>
+                    <p className="text-2xl font-bold text-red-600">{stats.rejected + stats.failed}</p>
+                  </div>
+                  <div className="bg-red-50 p-3 rounded-full">
+                    <FaBan className="w-6 h-6 text-red-600" />
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Table */}
             <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gradient-to-r from-blue-600 to-blue-700">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        S NO
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Transaction ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Vendor Details
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Amount
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Bank Details
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">#</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Trans ID</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Vendor</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Amount</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Bank</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredWithdrawals.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="px-6 py-12 text-center">
-                          <div className="mx-auto w-24 h-24 text-gray-300 mb-4">
-                            <FaMoneyBillWave className="w-full h-full" />
+                        <td colSpan="8" className="px-4 py-12">
+                          <div className="text-center">
+                            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                              <FaMoneyBillWave className="h-8 w-8 text-gray-400" />
+                            </div>
+                            <h3 className="text-base font-medium text-gray-900 mb-1">
+                              {searchTerm || statusFilter !== "all" 
+                                ? "No matching withdrawals found" 
+                                : "No withdrawal requests found"}
+                            </h3>
+                            <p className="text-sm text-gray-500 mb-4">
+                              {searchTerm || statusFilter !== "all"
+                                ? "Try adjusting your search or filters"
+                                : "No withdrawal requests have been made yet"}
+                            </p>
+                            {(searchTerm || statusFilter !== "all") && (
+                              <button
+                                onClick={() => {
+                                  setSearchTerm("");
+                                  setStatusFilter("all");
+                                }}
+                                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                              >
+                                Clear Filters
+                              </button>
+                            )}
                           </div>
-                          <p className="text-gray-500">No withdrawal requests found</p>
-                          <p className="text-gray-400 text-sm mt-1">
-                            {searchTerm ? "Try changing your search criteria" : "All withdrawal requests are processed"}
-                          </p>
                         </td>
                       </tr>
                     ) : (
-                      filteredWithdrawals.map((withdrawal, index) => (
+                      currentItems.map((withdrawal, index) => (
                         <tr key={withdrawal._id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4">
-                            {(currentPage - 1)*itemsPerPage + index +1}
+                          <td className="px-4 py-3 text-sm text-gray-500">
+                            {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-mono font-medium text-gray-900">
-                              {withdrawal.transactionId}
-                            </div>
+                          <td className="px-4 py-3">
+                            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                              {withdrawal.transactionId?.slice(-8)}
+                            </span>
                           </td>
-                          <td className="px-6 py-4">
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                {withdrawal.vendor?.vendorName || 'N/A'}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center">
+                              <div className="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center">
+                                <FaUser className="h-4 w-4 text-gray-500" />
                               </div>
-                              <div className="text-sm text-gray-500">
-                                {withdrawal.vendor?.vendorEmail || 'N/A'}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {withdrawal.vendor?.vendorPhone || 'N/A'}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-lg font-bold text-gray-900 flex items-center">
-                              {/* <FaRupeeSign className="mr-1" /> */}
-                              {formatCurrency(withdrawal.amount)}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                {withdrawal.bankAccount?.bankName || 'N/A'}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {withdrawal.bankAccount?.accountHolderName || 'N/A'}
-                              </div>
-                              <div className="text-sm text-gray-700 font-mono bg-gray-50 px-2 py-1 rounded">
-                                {formatAccountNumber(withdrawal.bankAccount?.accountNumber)}
+                              <div className="ml-3">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {withdrawal.vendor?.vendorName || 'N/A'}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {withdrawal.vendor?.vendorEmail || 'N/A'}
+                                </div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center w-fit ${getStatusBadgeClass(withdrawal.status)}`}>
+                          <td className="px-4 py-3">
+                            <span className="text-sm font-semibold text-blue-600">
+                              ₹{withdrawal.amount?.toLocaleString() || "0"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm">
+                              <div className="font-medium">{withdrawal.bankAccount?.bankName || 'N/A'}</div>
+                              <div className="text-xs text-gray-500">
+                                {withdrawal.bankAccount?.accountNumber || 'N/A'}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border items-center ${getStatusBadgeClass(withdrawal.status)}`}>
                               {getStatusIcon(withdrawal.status)}
                               {withdrawal.status}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
+                          <td className="px-4 py-3">
+                            <div className="text-sm text-gray-500">
                               {formatDate(withdrawal.createdAt)}
                             </div>
-                            <div className="text-xs text-gray-500">
-                              {formatTime(withdrawal.createdAt)}
-                            </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-3">
                             <div className="flex space-x-2">
                               <button
                                 onClick={() => handleViewWithdrawal(withdrawal)}
-                                className="text-blue-600 hover:text-blue-900 p-2 rounded-full hover:bg-blue-50 transition-colors"
+                                className="p-1.5 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors"
                                 title="View Details"
                               >
-                                <FaEye />
+                                <FaEye className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => handleUpdateStatus(withdrawal)}
-                                className="text-yellow-600 hover:text-yellow-900 p-2 rounded-full hover:bg-yellow-50 transition-colors"
+                                className="p-1.5 bg-yellow-100 text-yellow-600 rounded hover:bg-yellow-200 transition-colors"
                                 title="Update Status"
                               >
-                                <FaEdit />
+                                <FaEdit className="h-4 w-4" />
                               </button>
                             </div>
                           </td>
@@ -957,64 +999,57 @@ export default function AdminWithdrawalManagement() {
               </div>
               
               {/* Pagination */}
-              {filteredWithdrawals.length > 0 && totalPages > 1 && (
-                <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+              {filteredWithdrawals.length > 0 && filteredTotalPages > 1 && (
+                <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
                   <Pagination />
                 </div>
               )}
             </div>
 
             {/* Summary */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">Summary</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Total Amount Requested</p>
-                  <p className="text-xl font-bold text-blue-600 flex items-center">
-                    <FaRupeeSign className="mr-1" />
-                    {formatCurrency(
-                      withdrawals.reduce((sum, item) => sum + item.amount, 0)
-                    )}
-                  </p>
-                </div>
-                
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Completed Amount</p>
-                  <p className="text-xl font-bold text-green-600 flex items-center">
-                    <FaRupeeSign className="mr-1" />
-                    {formatCurrency(
-                      withdrawals
-                        .filter(item => item.status.toLowerCase() === 'completed')
-                        .reduce((sum, item) => sum + item.amount, 0)
-                    )}
-                  </p>
-                </div>
-                
-                <div className="p-4 bg-yellow-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Pending Amount</p>
-                  <p className="text-xl font-bold text-yellow-600 flex items-center">
-                    <FaRupeeSign className="mr-1" />
-                    {formatCurrency(
-                      withdrawals
-                        .filter(item => ['requested', 'pending', 'processing'].includes(item.status.toLowerCase()))
-                        .reduce((sum, item) => sum + item.amount, 0)
-                    )}
-                  </p>
-                </div>
-                
-                <div className="p-4 bg-red-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Rejected/Failed Amount</p>
-                  <p className="text-xl font-bold text-red-600 flex items-center">
-                    <FaRupeeSign className="mr-1" />
-                    {formatCurrency(
-                      withdrawals
-                        .filter(item => ['rejected', 'failed', 'cancelled'].includes(item.status.toLowerCase()))
-                        .reduce((sum, item) => sum + item.amount, 0)
-                    )}
-                  </p>
+            {filteredWithdrawals.length > 0 && (
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">Summary</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Total Amount</p>
+                    <p className="text-xl font-bold text-blue-600">
+                      ₹{filteredWithdrawals.reduce((sum, item) => sum + (item.amount || 0), 0).toLocaleString()}
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Completed</p>
+                    <p className="text-xl font-bold text-green-600">
+                      ₹{filteredWithdrawals
+                        .filter(item => item.status?.toLowerCase() === 'completed')
+                        .reduce((sum, item) => sum + (item.amount || 0), 0)
+                        .toLocaleString()}
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 bg-yellow-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Requested</p>
+                    <p className="text-xl font-bold text-yellow-600">
+                      ₹{filteredWithdrawals
+                        .filter(item => item.status?.toLowerCase() === 'requested')
+                        .reduce((sum, item) => sum + (item.amount || 0), 0)
+                        .toLocaleString()}
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 bg-red-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Rejected/Failed</p>
+                    <p className="text-xl font-bold text-red-600">
+                      ₹{filteredWithdrawals
+                        .filter(item => ['rejected', 'failed', 'cancelled'].includes(item.status?.toLowerCase()))
+                        .reduce((sum, item) => sum + (item.amount || 0), 0)
+                        .toLocaleString()}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </>
         )}
       </div>

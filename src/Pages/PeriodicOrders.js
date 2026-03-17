@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { FiEye, FiEdit, FiTrash, FiDownload, FiFilter, FiChevronLeft, FiChevronRight, FiX, FiCalendar } from "react-icons/fi";
+import { 
+  FiEye, FiEdit, FiTrash, FiDownload, FiFilter, 
+  FiChevronLeft, FiChevronRight, FiX, FiCalendar,
+  FiInbox, FiRefreshCw, FiPackage, FiUser,
+  FiDollarSign, FiClock
+} from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
@@ -16,10 +21,10 @@ export default function PeriodicOrders() {
     const [filterStatus, setFilterStatus] = useState("");
     const [filterPlanType, setFilterPlanType] = useState("");
     const [filterPaymentStatus, setFilterPaymentStatus] = useState("");
-    const [filterDateType, setFilterDateType] = useState(""); // "day", "month", "year"
-    const [filterDate, setFilterDate] = useState(""); // For specific date
-    const [filterMonth, setFilterMonth] = useState(""); // YYYY-MM format
-    const [filterYear, setFilterYear] = useState(""); // YYYY format
+    const [filterDateType, setFilterDateType] = useState("");
+    const [filterDate, setFilterDate] = useState("");
+    const [filterMonth, setFilterMonth] = useState("");
+    const [filterYear, setFilterYear] = useState("");
     const [showFilters, setShowFilters] = useState(false);
     const [generatingInvoice, setGeneratingInvoice] = useState(false);
 
@@ -80,7 +85,6 @@ export default function PeriodicOrders() {
             alert("Please fill both status and message.");
             return;
         }
-        console.log("Updating status for order:", selectedOrder);
         try {
             const res = await fetch(
                 `http://31.97.206.144:7021/api/admin/updatepreodicorders/${selectedOrder.userId._id}/${selectedOrder._id}`,
@@ -89,9 +93,7 @@ export default function PeriodicOrders() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(statusForm),
                 }
-                
             );
-            console.log(res);
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || "Update failed");
 
@@ -301,6 +303,12 @@ export default function PeriodicOrders() {
         setCurrentPage(1);
     };
 
+    // Refresh function
+    const handleRefresh = () => {
+        clearAllFilters();
+        fetchOrders();
+    };
+
     // Pagination
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -313,372 +321,549 @@ export default function PeriodicOrders() {
     const uniquePaymentStatuses = [...new Set(orders.map(order => order.paymentStatus).filter(paymentStatus => paymentStatus))].sort();
     const uniqueYears = getUniqueYears();
 
+    // Status badge color function
+    const getStatusColor = (status) => {
+        switch(status?.toLowerCase()) {
+            case 'delivered': return 'bg-green-100 text-green-800 border-green-200';
+            case 'confirmed': return 'bg-purple-100 text-purple-800 border-purple-200';
+            case 'shipped': return 'bg-blue-100 text-blue-800 border-blue-200';
+            case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
+            default: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        }
+    };
+
+    // Payment status badge color
+    const getPaymentStatusColor = (status) => {
+        switch(status?.toLowerCase()) {
+            case 'paid': return 'bg-green-100 text-green-800 border-green-200';
+            case 'failed': return 'bg-red-100 text-red-800 border-red-200';
+            default: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        }
+    };
+
     return (
-        <div className="max-w-7xl mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4 text-green-800">Periodic Orders</h1>
-
-            {/* Filters and Export Button */}
-            <div className="flex justify-between items-center mb-4">
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => setShowFilters(!showFilters)}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm"
-                    >
-                        <FiFilter /> Filters
-                    </button>
-                    {(filterStatus || filterPlanType || filterPaymentStatus || filterDateType) && (
+        <div className="min-h-screen bg-gray-50 py-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Header */}
+                <div className="mb-6">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+                                <FiPackage className="mr-2 text-green-600" />
+                                Periodic Orders
+                            </h1>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Manage and track all periodic orders
+                            </p>
+                        </div>
                         <button
-                            onClick={clearAllFilters}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm"
+                            onClick={handleRefresh}
+                            className="inline-flex items-center px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
                         >
-                            <FiX className="mr-1" />
-                            Clear Filters
+                            <FiRefreshCw className="mr-2 h-4 w-4" />
+                            Refresh
                         </button>
-                    )}
+                    </div>
                 </div>
 
-                {filteredOrders.length > 0 && (
-                    <CSVLink
-                        {...prepareCSVData()}
-                        filename="periodic-orders-export.csv"
-                        className="px-3 py-1.5 bg-green-900 text-white rounded hover:bg-green-900 no-underline text-sm flex items-center"
-                    >
-                        <FiDownload className="mr-1" />
-                        Export CSV
-                    </CSVLink>
-                )}
-            </div>
-
-            {/* Filter Panel */}
-            {showFilters && (
-                <div className="bg-white p-3 rounded shadow-md mb-4 border border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {/* Status Filter */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
-                            <select
-                                value={filterStatus}
-                                onChange={(e) => {
-                                    setFilterStatus(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                className="w-full p-1.5 border rounded text-sm"
-                            >
-                                <option value="">All Statuses</option>
-                                {uniqueStatuses.map((status, index) => (
-                                    <option key={index} value={status}>{status}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Plan Type Filter */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Plan Type</label>
-                            <select
-                                value={filterPlanType}
-                                onChange={(e) => {
-                                    setFilterPlanType(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                className="w-full p-1.5 border rounded text-sm"
-                            >
-                                <option value="">All Plan Types</option>
-                                {uniquePlanTypes.map((planType, index) => (
-                                    <option key={index} value={planType}>{planType}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Payment Status Filter */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Payment Status</label>
-                            <select
-                                value={filterPaymentStatus}
-                                onChange={(e) => {
-                                    setFilterPaymentStatus(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                className="w-full p-1.5 border rounded text-sm"
-                            >
-                                <option value="">All Payment Statuses</option>
-                                {uniquePaymentStatuses.map((paymentStatus, index) => (
-                                    <option key={index} value={paymentStatus}>{paymentStatus}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Date Type Filter */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Date Filter Type</label>
-                            <select
-                                value={filterDateType}
-                                onChange={(e) => handleDateTypeChange(e.target.value)}
-                                className="w-full p-1.5 border rounded text-sm"
-                            >
-                                <option value="">No Date Filter</option>
-                                <option value="day">Specific Date</option>
-                                <option value="month">By Month</option>
-                                <option value="year">By Year</option>
-                            </select>
-                        </div>
-
-                        {/* Specific Date Filter */}
-                        {filterDateType === "day" && (
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Select Date</label>
-                                <input
-                                    type="date"
-                                    value={filterDate}
-                                    onChange={(e) => {
-                                        setFilterDate(e.target.value);
-                                        setCurrentPage(1);
-                                    }}
-                                    className="w-full p-1.5 border rounded text-sm"
-                                />
-                            </div>
-                        )}
-
-                        {/* Month Filter */}
-                        {filterDateType === "month" && (
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Select Month</label>
-                                <input
-                                    type="month"
-                                    value={filterMonth}
-                                    onChange={(e) => {
-                                        setFilterMonth(e.target.value);
-                                        setCurrentPage(1);
-                                    }}
-                                    className="w-full p-1.5 border rounded text-sm"
-                                />
-                            </div>
-                        )}
-
-                        {/* Year Filter */}
-                        {filterDateType === "year" && (
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Select Year</label>
-                                <select
-                                    value={filterYear}
-                                    onChange={(e) => {
-                                        setFilterYear(e.target.value);
-                                        setCurrentPage(1);
-                                    }}
-                                    className="w-full p-1.5 border rounded text-sm"
+                {/* Filters and Export Button */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+                    <div className="p-4">
+                        <div className="flex justify-between items-center">
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowFilters(!showFilters)}
+                                    className={`inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                                        showFilters 
+                                            ? 'bg-green-600 text-white' 
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }`}
                                 >
-                                    <option value="">Select Year</option>
-                                    {uniqueYears.map((year, index) => (
-                                        <option key={index} value={year}>{year}</option>
-                                    ))}
-                                </select>
+                                    <FiFilter className="mr-2 h-4 w-4" />
+                                    Filters
+                                    {Object.keys({
+                                        filterStatus, filterPlanType, filterPaymentStatus, filterDateType
+                                    }).filter(key => Boolean(eval(key))).length > 0 && (
+                                        <span className="ml-2 bg-white text-green-600 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                                            {Object.keys({filterStatus, filterPlanType, filterPaymentStatus, filterDateType})
+                                                .filter(key => Boolean(eval(key))).length}
+                                        </span>
+                                    )}
+                                </button>
+                                
+                                {(filterStatus || filterPlanType || filterPaymentStatus || filterDateType) && (
+                                    <button
+                                        onClick={clearAllFilters}
+                                        className="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200"
+                                    >
+                                        <FiX className="mr-2 h-4 w-4" />
+                                        Clear All
+                                    </button>
+                                )}
+                            </div>
+
+                            {filteredOrders.length > 0 && (
+                                <CSVLink
+                                    {...prepareCSVData()}
+                                    filename={`periodic-orders-${new Date().toISOString().split('T')[0]}.csv`}
+                                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700"
+                                >
+                                    <FiDownload className="mr-2 h-4 w-4" />
+                                    Export CSV
+                                </CSVLink>
+                            )}
+                        </div>
+
+                        {/* Filter Panel */}
+                        {showFilters && (
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {/* Status Filter */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Order Status
+                                        </label>
+                                        <select
+                                            value={filterStatus}
+                                            onChange={(e) => {
+                                                setFilterStatus(e.target.value);
+                                                setCurrentPage(1);
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-green-500 focus:border-green-500"
+                                        >
+                                            <option value="">All Statuses</option>
+                                            {uniqueStatuses.map((status, index) => (
+                                                <option key={index} value={status}>{status}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Plan Type Filter */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Plan Type
+                                        </label>
+                                        <select
+                                            value={filterPlanType}
+                                            onChange={(e) => {
+                                                setFilterPlanType(e.target.value);
+                                                setCurrentPage(1);
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-green-500 focus:border-green-500"
+                                        >
+                                            <option value="">All Plans</option>
+                                            {uniquePlanTypes.map((planType, index) => (
+                                                <option key={index} value={planType}>{planType}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Payment Status Filter */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Payment Status
+                                        </label>
+                                        <select
+                                            value={filterPaymentStatus}
+                                            onChange={(e) => {
+                                                setFilterPaymentStatus(e.target.value);
+                                                setCurrentPage(1);
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-green-500 focus:border-green-500"
+                                        >
+                                            <option value="">All Payments</option>
+                                            {uniquePaymentStatuses.map((paymentStatus, index) => (
+                                                <option key={index} value={paymentStatus}>{paymentStatus}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Date Type Filter */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Date Filter
+                                        </label>
+                                        <select
+                                            value={filterDateType}
+                                            onChange={(e) => handleDateTypeChange(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-green-500 focus:border-green-500"
+                                        >
+                                            <option value="">No Date Filter</option>
+                                            <option value="day">Specific Date</option>
+                                            <option value="month">By Month</option>
+                                            <option value="year">By Year</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Specific Date Filter */}
+                                    {filterDateType === "day" && (
+                                        <div className="lg:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Select Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={filterDate}
+                                                onChange={(e) => {
+                                                    setFilterDate(e.target.value);
+                                                    setCurrentPage(1);
+                                                }}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-green-500 focus:border-green-500"
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Month Filter */}
+                                    {filterDateType === "month" && (
+                                        <div className="lg:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Select Month
+                                            </label>
+                                            <input
+                                                type="month"
+                                                value={filterMonth}
+                                                onChange={(e) => {
+                                                    setFilterMonth(e.target.value);
+                                                    setCurrentPage(1);
+                                                }}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-green-500 focus:border-green-500"
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Year Filter */}
+                                    {filterDateType === "year" && (
+                                        <div className="lg:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Select Year
+                                            </label>
+                                            <select
+                                                value={filterYear}
+                                                onChange={(e) => {
+                                                    setFilterYear(e.target.value);
+                                                    setCurrentPage(1);
+                                                }}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-green-500 focus:border-green-500"
+                                            >
+                                                <option value="">Select Year</option>
+                                                {uniqueYears.map((year, index) => (
+                                                    <option key={index} value={year}>{year}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-3 text-xs text-gray-500 flex justify-between items-center">
+                                    <span className="bg-gray-100 px-2 py-1 rounded">
+                                        Showing {filteredOrders.length} of {orders.length} orders
+                                        {(filterDateType === "day" && filterDate) && ` • Date: ${filterDate}`}
+                                        {(filterDateType === "month" && filterMonth) && ` • Month: ${filterMonth}`}
+                                        {(filterDateType === "year" && filterYear) && ` • Year: ${filterYear}`}
+                                    </span>
+                                </div>
                             </div>
                         )}
                     </div>
-                    
-                    <div className="mt-2 text-xs text-gray-500 flex justify-between items-center">
-                        <span>
-                            Showing {filteredOrders.length} of {orders.length} orders
-                            {(filterDateType === "day" && filterDate) && ` • Date: ${filterDate}`}
-                            {(filterDateType === "month" && filterMonth) && ` • Month: ${filterMonth}`}
-                            {(filterDateType === "year" && filterYear) && ` • Year: ${filterYear}`}
-                        </span>
-                        <button
-                            onClick={() => setShowFilters(false)}
-                            className="text-gray-500 hover:text-gray-700"
-                        >
-                            <FiX size={16} />
-                        </button>
-                    </div>
                 </div>
-            )}
 
-            {loading && <p className="text-center py-4">Loading periodic orders...</p>}
-            {error && <div className="mb-3 p-2 bg-red-100 text-red-700 rounded text-sm">{error}</div>}
+                {/* Loading State */}
+                {loading && (
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12">
+                        <div className="flex flex-col items-center justify-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-200 border-t-green-600"></div>
+                            <p className="mt-3 text-sm text-gray-500">Loading periodic orders...</p>
+                        </div>
+                    </div>
+                )}
 
-            {!loading && !error && (
-                <>
-                    <div className="overflow-x-auto border rounded shadow bg-white">
-                        <table className="w-full table-auto">
-                            <thead className="bg-green-600 text-white">
-                                <tr>
-                                    <th className="p-2 text-left text-sm">S NO</th>
-                                    <th className="p-2 text-left text-sm">OrderId</th>
-                                    <th className="p-2 text-left text-sm">User Info</th>
-                                    <th className="p-2 text-left text-sm">Plan Type</th>
-                                    <th className="p-2 text-left text-sm">Total Price</th>
-                                    <th className="p-2 text-left text-sm">Delivery Date</th>
-                                    <th className="p-2 text-left text-sm">Payment</th>
-                                    <th className="p-2 text-left text-sm">Status</th>
-                                    <th className="p-2 text-left text-sm">Rider</th>
-                                    <th className="p-2 text-left text-sm">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {currentItems.length > 0 ? (
-                                    currentItems.map((order, idx) => (
-                                        <tr key={order._id} className="border-b hover:bg-gray-50 align-top">
-                                            <td className="p-2 text-sm">{indexOfFirstItem + idx + 1}</td>
-                                            <td className="p-2 font-mono text-sm">{order._id?.slice(-6)}</td>
-                                            <td className="p-2">
-                                                <div className="text-sm">
-                                                    <div className="font-medium">{order.userId?.name || "N/A"}</div>
-                                                    <div className="text-xs text-gray-500">{order.userId?.mobile || "N/A"}</div>
-                                                </div>
-                                            </td>
-                                            <td className="p-2 text-sm">
-                                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                                                    {order.planType || "N/A"}
-                                                </span>
-                                            </td>
-                                            <td className="p-2 font-medium text-green-700 text-sm">
-                                                ₹{order.total?.toFixed(2) || "0.00"}
-                                            </td>
-                                            <td className="p-2 text-sm">
-                                                {new Date(order.deliveryDate).toLocaleDateString()}
-                                            </td>
-                                            <td className="p-2 text-sm">
-                                                <span className={`px-2 py-1 rounded-full text-xs ${
-                                                    order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' :
-                                                    order.paymentStatus === 'Failed' ? 'bg-red-100 text-red-800' :
-                                                    'bg-yellow-100 text-yellow-800'
-                                                }`}>
-                                                    {order.paymentStatus || "Pending"}
-                                                </span>
-                                            </td>
-                                            <td className="p-2">
-                                                <span className={`px-2 py-1 rounded-full text-xs ${
-                                                    order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
-                                                    order.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
-                                                    order.status === 'Shipped' ? 'bg-blue-100 text-blue-800' :
-                                                    order.status === 'Confirmed' ? 'bg-purple-100 text-purple-800' :
-                                                    'bg-yellow-100 text-yellow-800'
-                                                }`}>
-                                                    {order.status || "Pending"}
-                                                </span>
-                                            </td>
-                                            <td className="p-2 text-sm">
-                                                {order.assignedRider ? (
-                                                    <div>
-                                                        <div className="font-medium">{order.assignedRider.name}</div>
+                {/* Error State */}
+                {error && !loading && (
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12">
+                        <div className="text-center">
+                            <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                                <FiPackage className="h-8 w-8 text-red-500" />
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to load orders</h3>
+                            <p className="text-sm text-gray-500 mb-4">{error}</p>
+                          
+                        </div>
+                    </div>
+                )}
+
+                {/* Table */}
+                {!loading && !error && (
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gradient-to-r from-green-600 to-green-700">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">S NO</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Order ID</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">User Info</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Plan</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Total</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Delivery</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Payment</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Rider</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {filteredOrders.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="10" className="px-4 py-12">
+                                                <div className="text-center">
+                                                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                                                        <FiInbox className="h-8 w-8 text-gray-400" />
                                                     </div>
-                                                ) : (
-                                                    <span className="text-gray-400 text-xs">Not Assigned</span>
-                                                )}
-                                            </td>
-                                            <td className="p-2">
-                                                <div className="flex space-x-2 text-base">
-                                                    <FiEye
-                                                        onClick={() => navigate(`/admin/orders/${order._id}`)}
-                                                        className="text-green-500 cursor-pointer hover:text-green-600"
-                                                        title="View Details"
-                                                    />
-                                                    <FiEdit
-                                                        onClick={() => openEditModal(order)}
-                                                        className="text-yellow-500 cursor-pointer hover:text-yellow-600"
-                                                        title="Edit Status"
-                                                    />
-                                                    <FiTrash
-                                                        onClick={() => handleDelete(order._id)}
-                                                        className="text-red-500 cursor-pointer hover:text-red-600"
-                                                        title="Delete"
-                                                    />
-                                                    <FiDownload
-                                                        onClick={() => handleDownloadInvoice(order)}
-                                                        className="text-blue-500 cursor-pointer hover:text-blue-600"
-                                                        title="Download Invoice"
-                                                        disabled={generatingInvoice}
-                                                    />
+                                                    <h3 className="text-base font-medium text-gray-900 mb-1">
+                                                        {filterStatus || filterPlanType || filterPaymentStatus || filterDateType
+                                                            ? "No matching orders found"
+                                                            : "No periodic orders found"
+                                                        }
+                                                    </h3>
+                                                    <p className="text-sm text-gray-500 mb-4">
+                                                        {filterStatus || filterPlanType || filterPaymentStatus || filterDateType
+                                                            ? "Try adjusting your filters"
+                                                            : "There are no periodic orders in the system yet"
+                                                        }
+                                                    </p>
+                                                    {(filterStatus || filterPlanType || filterPaymentStatus || filterDateType) && (
+                                                        <button
+                                                            onClick={clearAllFilters}
+                                                            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                                                        >
+                                                            <FiX className="mr-2 h-4 w-4" />
+                                                            Clear Filters
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="9" className="p-6 text-center text-gray-500 text-sm">
-                                            No periodic orders found matching your filters.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Pagination Controls */}
-                    {totalPages > 1 && (
-                        <div className="flex justify-center items-center mt-4 space-x-3">
-                            <button
-                                disabled={currentPage === 1}
-                                onClick={() => setCurrentPage((p) => p - 1)}
-                                className={`px-3 py-1.5 rounded flex items-center text-sm ${
-                                    currentPage === 1
-                                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                        : "bg-green-500 text-white hover:bg-green-600"
-                                }`}
-                            >
-                                <FiChevronLeft className="mr-1" /> Prev
-                            </button>
-
-                            <span className="text-sm text-gray-600">
-                                Page {currentPage} of {totalPages}
-                            </span>
-
-                            <button
-                                disabled={currentPage === totalPages || totalPages === 0}
-                                onClick={() => setCurrentPage((p) => p + 1)}
-                                className={`px-3 py-1.5 rounded flex items-center text-sm ${
-                                    currentPage === totalPages || totalPages === 0
-                                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                        : "bg-green-500 text-white hover:bg-green-600"
-                                }`}
-                            >
-                                Next <FiChevronRight className="ml-1" />
-                            </button>
+                                    ) : (
+                                        currentItems.map((order, idx) => (
+                                            <tr key={order._id} className="hover:bg-gray-50 transition-colors">
+                                                <td className="px-4 py-3 text-sm text-gray-500">
+                                                    {indexOfFirstItem + idx + 1}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                                                        {order._id?.slice(-8)}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex items-center">
+                                                        <div className="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center">
+                                                            <FiUser className="h-4 w-4 text-gray-500" />
+                                                        </div>
+                                                        <div className="ml-3">
+                                                            <div className="text-sm font-medium text-gray-900">
+                                                                {order.userId?.name || "N/A"}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500">
+                                                                {order.userId?.mobile || "N/A"}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                                                        {order.planType || "N/A"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className="text-sm font-semibold text-green-600">
+                                                        ₹{order.total?.toFixed(2) || "0.00"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex items-center text-sm text-gray-500">
+                                                        <FiCalendar className="h-3 w-3 mr-1 text-gray-400" />
+                                                        {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : "N/A"}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${getPaymentStatusColor(order.paymentStatus)}`}>
+                                                        {order.paymentStatus || "Pending"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(order.status)}`}>
+                                                        {order.status || "Pending"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    {order.assignedRider ? (
+                                                        <div className="text-sm">
+                                                            <span className="font-medium">{order.assignedRider.name}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-gray-400">Not assigned</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex space-x-2">
+                                                        <button
+                                                            onClick={() => navigate(`/admin/orders/${order._id}`)}
+                                                            className="p-1.5 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors"
+                                                            title="View Details"
+                                                        >
+                                                            <FiEye className="h-4 w-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => openEditModal(order)}
+                                                            className="p-1.5 bg-yellow-100 text-yellow-600 rounded hover:bg-yellow-200 transition-colors"
+                                                            title="Edit Status"
+                                                        >
+                                                            <FiEdit className="h-4 w-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(order._id)}
+                                                            className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors"
+                                                            title="Delete"
+                                                        >
+                                                            <FiTrash className="h-4 w-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDownloadInvoice(order)}
+                                                            disabled={generatingInvoice}
+                                                            className="p-1.5 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors disabled:opacity-50"
+                                                            title="Download Invoice"
+                                                        >
+                                                            <FiDownload className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
-                    )}
-                </>
-            )}
+
+                        {/* Pagination */}
+                        {filteredOrders.length > 0 && totalPages > 1 && (
+                            <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-sm text-gray-500">
+                                        Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredOrders.length)} of {filteredOrders.length} orders
+                                    </div>
+                                    <div className="flex space-x-2">
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                            disabled={currentPage === 1}
+                                            className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <FiChevronLeft className="h-4 w-4" />
+                                        </button>
+                                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                            let pageNum;
+                                            if (totalPages <= 5) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage <= 3) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage >= totalPages - 2) {
+                                                pageNum = totalPages - 4 + i;
+                                            } else {
+                                                pageNum = currentPage - 2 + i;
+                                            }
+                                            
+                                            return (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => setCurrentPage(pageNum)}
+                                                    className={`px-3 py-1 border rounded-md text-sm ${
+                                                        currentPage === pageNum
+                                                            ? 'bg-green-600 text-white border-green-600'
+                                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                                    }`}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        })}
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                            disabled={currentPage === totalPages}
+                                            className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <FiChevronRight className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
 
             {/* Edit Status Modal */}
             {showEditModal && selectedOrder && (
-                <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
-                    <div className="bg-white p-5 rounded-lg w-90 shadow-lg border border-gray-200">
-                        <h2 className="text-lg font-bold mb-3">Update Periodic Order Status</h2>
-
-                        <label className="block mb-1 font-medium text-sm">Status</label>
-                        <select
-                            value={statusForm.status}
-                            onChange={(e) => setStatusForm({ ...statusForm, status: e.target.value })}
-                            className="border p-1.5 rounded w-full mb-3 text-sm"
-                        >
-                            <option value="">Select status</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Confirmed">Confirmed</option>
-                            <option value="Shipped">Shipped</option>
-                            <option value="Delivered">Delivered</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
-
-                        <label className="block mb-1 font-medium text-sm">Message</label>
-                        <textarea
-                            value={statusForm.message}
-                            onChange={(e) => setStatusForm({ ...statusForm, message: e.target.value })}
-                            className="border p-1.5 rounded w-full mb-3 text-sm"
-                            placeholder="Enter status update message for the user"
-                            rows="3"
-                        />
-
-                        <div className="flex justify-end gap-2">
+                <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-gray-500 bg-opacity-75">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-medium text-gray-900">Update Order Status</h3>
                             <button
                                 onClick={() => setShowEditModal(false)}
-                                className="px-3 py-1.5 bg-gray-300 rounded hover:bg-gray-400 text-sm"
+                                className="text-gray-400 hover:text-gray-500"
+                            >
+                                <FiX className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <div className="mb-4 p-3 bg-gray-50 rounded-md">
+                            <p className="text-sm text-gray-600">
+                                Order ID: <span className="font-mono font-medium">{selectedOrder._id?.slice(-8)}</span>
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Status
+                                </label>
+                                <select
+                                    value={statusForm.status}
+                                    onChange={(e) => setStatusForm({ ...statusForm, status: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-green-500 focus:border-green-500"
+                                >
+                                    <option value="">Select status</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Confirmed">Confirmed</option>
+                                    <option value="Shipped">Shipped</option>
+                                    <option value="Delivered">Delivered</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Message
+                                </label>
+                                <textarea
+                                    value={statusForm.message}
+                                    onChange={(e) => setStatusForm({ ...statusForm, message: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-green-500 focus:border-green-500"
+                                    placeholder="Enter status update message for the user"
+                                    rows="3"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mt-6 flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowEditModal(false)}
+                                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleStatusUpdate}
-                                className="px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700"
                             >
-                                Update
+                                Update Status
                             </button>
                         </div>
                     </div>
