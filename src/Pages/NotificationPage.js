@@ -41,7 +41,13 @@ const NotificationPage = () => {
   };
 
   useEffect(() => {
-    fetchNotifications();
+    fetchNotifications(); // initial call
+
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 5000); // 5 seconds
+
+    return () => clearInterval(interval); // cleanup on unmount
   }, []);
 
   // ✅ Handle select all
