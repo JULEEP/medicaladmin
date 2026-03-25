@@ -42,7 +42,7 @@ const Navbar = ({ setIsCollapsed, isCollapsed }) => {
         axios.get("http://31.97.206.144:7021/api/admin/alluploadprescription"),
       ]);
 
-      const notifications = notifRes.data || [];
+      const notifications = notifRes.data.notifications || [];
       const currentTotalCount = notifications.length;
 
       // Check if new notifications were added (length increased)
@@ -104,12 +104,13 @@ const Navbar = ({ setIsCollapsed, isCollapsed }) => {
   const handleNotificationsClick = async () => {
     try {
       const notifRes = await axios.get("http://31.97.206.144:7021/api/admin/allnotifications");
-      const notifications = notifRes.data || [];
+      const notifications = notifRes.data.notifications || [];
 
       notifications.forEach((n) => readNotificationIds.current.add(n._id));
 
       setNotificationCount(0); // Reset display
       navigate("/notifications");
+      console.log("Marked notifications as read locally.");
     } catch (error) {
       console.error("Error marking notifications as read:", error);
     }

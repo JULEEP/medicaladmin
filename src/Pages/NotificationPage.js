@@ -30,8 +30,8 @@ const NotificationPage = () => {
     try {
       console.log("Fetching notifications...");
       const res = await axios.get(`${baseURL}/allnotifications`);
-      console.log("Fetched notifications:", res.data);
-      setNotifications(res.data);
+      console.log("Fetched notifications:", res.data.notifications);
+      setNotifications(res.data.notifications || []);
       // Reset selection on new fetch
       setSelectedNotifications([]);
       setSelectAll(false);
@@ -61,7 +61,7 @@ const NotificationPage = () => {
   const handleSelectNotification = (id) => {
     console.log("Toggling selection for notification:", id);
     let newSelected = [...selectedNotifications];
-    
+
     if (newSelected.includes(id)) {
       newSelected = newSelected.filter(notifId => notifId !== id);
       console.log("Removed from selection. Current:", newSelected);
@@ -69,9 +69,9 @@ const NotificationPage = () => {
       newSelected.push(id);
       console.log("Added to selection. Current:", newSelected);
     }
-    
+
     setSelectedNotifications(newSelected);
-    
+
     // Check if all current page items are selected
     const currentPageIds = currentItems.map(item => item._id);
     const allSelected = currentPageIds.every(id => newSelected.includes(id));
@@ -85,9 +85,9 @@ const NotificationPage = () => {
     try {
       console.log("Deleting single notification:", id);
       const response = await axios.delete(`${baseURL}/deletenotification/${id}`);
-      
+
       console.log("Delete response:", response.data);
-      
+
       if (response.data.success) {
         setNotifications((prev) => prev.filter((n) => n._id !== id));
         setSelectedNotifications(prev => prev.filter(notifId => notifId !== id));
@@ -107,58 +107,46 @@ const NotificationPage = () => {
       return;
     }
 
-    if (!window.confirm(`Are you sure you want to delete ${selectedNotifications.length} notification(s)?`)) {
-      return;
-    }
+    if (!window.confirm(`Delete ${selectedNotifications.length} notifications?`)) return;
 
     setBulkDeleteLoading(true);
 
     try {
-      console.log("Bulk deleting notifications. Selected IDs:", selectedNotifications);
-      console.log("Sending to URL:", `${baseURL}/deletenotifications`);
-      console.log("Request body:", { notificationIds: selectedNotifications });
 
-      const response = await axios({
-        method: 'delete',
-        url: `${baseURL}/deletenotifications`,
-        data: { notificationIds: selectedNotifications },
-        headers: {
-          'Content-Type': 'application/json'
+      const successIds = [];
+
+      for (let id of selectedNotifications) {
+        try {
+          const res = await axios.delete(`${baseURL}/deletenotification/${id}`);
+
+          if (res.data.success) {
+            successIds.push(id);
+          }
+        } catch (err) {
+          console.error("Failed delete:", id, err.response?.data);
         }
+      }
+
+      // ✅ Normalize IDs to string
+      const successIdStrings = successIds.map(id => String(id));
+
+      setNotifications((prev) => {
+        const updated = prev.filter(
+          (n) => !successIdStrings.includes(String(n._id))
+        );
+        return [...updated]; // force new reference
       });
-      
-      console.log("Bulk delete response:", response.data);
-      console.log("Response status:", response.status);
-      
-      if (response.data.success) {
-        // Remove deleted notifications from state
-        setNotifications(prev => prev.filter(n => !selectedNotifications.includes(n._id)));
-        setSelectedNotifications([]);
-        setSelectAll(false);
-        
-        alert(response.data.message || `Successfully deleted ${selectedNotifications.length} notification(s)!`);
-      }
+
+      setSelectedNotifications([]);
+      setSelectAll(false);
+
+      alert(`Deleted Selected notifications`);
+
+      await fetchNotifications();
+
     } catch (error) {
-      console.error("Error in bulk delete:", error);
-      
-      // Detailed error logging
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error("Error response data:", error.response.data);
-        console.error("Error response status:", error.response.status);
-        console.error("Error response headers:", error.response.headers);
-        
-        alert(error.response.data?.message || `Server error: ${error.response.status}`);
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.error("Error request:", error.request);
-        alert("No response from server. Please check if server is running.");
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error("Error message:", error.message);
-        alert("Error: " + error.message);
-      }
+      console.error(error);
+      alert("Bulk delete failed");
     } finally {
       setBulkDeleteLoading(false);
     }
@@ -192,7 +180,7 @@ const NotificationPage = () => {
       });
 
       console.log("Update response:", response.data);
-      
+
       if (response.data.success) {
         alert("Notification updated successfully!");
         // Refresh data
@@ -227,7 +215,7 @@ const NotificationPage = () => {
 
     try {
       console.log("Updating pharmacy status:", selectedPharmacyNotification.referenceId, pharmacyStatus);
-      
+
       // Update pharmacy status
       const pharmacyRes = await axios.put(
         `http://31.97.206.144:7021/api/pharmacy/updatepharmacy/${selectedPharmacyNotification.referenceId}`,
@@ -244,7 +232,7 @@ const NotificationPage = () => {
 
         // Refresh notifications
         fetchNotifications();
-        
+
         // Close modal
         setPharmacyStatusModal(false);
         setSelectedPharmacyNotification(null);
@@ -291,7 +279,7 @@ const NotificationPage = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">All Notifications</h2>
-        
+
         {/* Bulk Delete Button */}
         {selectedNotifications.length > 0 && (
           <button
@@ -324,7 +312,7 @@ const NotificationPage = () => {
                   </button>
                 </div>
               </th>
-              <th className="p-2 border">S NO</th> 
+              <th className="p-2 border">S NO</th>
               <th className="p-2 border">Type</th>
               <th className="p-2 border">Message</th>
               <th className="p-2 border">Created At</th>
@@ -349,12 +337,12 @@ const NotificationPage = () => {
                       </button>
                     </div>
                   </td>
-                  <td className="p-2 border">{(currentPage - 1)*itemsPerPage + index +1}</td>
+                  <td className="p-2 border">{(currentPage - 1) * itemsPerPage + index + 1}</td>
                   <td className="p-2 border">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                      ${n.type === 'Pharmacy' ? 'bg-purple-100 text-purple-800' : 
-                        n.type === 'Order' ? 'bg-blue-100 text-blue-800' : 
-                        'bg-gray-100 text-gray-800'}`}>
+                      ${n.type === 'Pharmacy' ? 'bg-purple-100 text-purple-800' :
+                        n.type === 'Order' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'}`}>
                       {n.type}
                     </span>
                   </td>
@@ -500,7 +488,7 @@ const NotificationPage = () => {
                   <option value="Rejected">Rejected</option>
                 </select>
               </div>
-              
+
               <div className="flex justify-end gap-2">
                 <button
                   type="button"

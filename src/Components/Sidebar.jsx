@@ -78,6 +78,7 @@ const Sidebar = ({ isCollapsed, isMobile }) => {
       icon: <i className="ri-motorbike-fill text-white"></i>,
       name: "Riders",
       dropdown: [
+        { name: "Create Rider", path: "/add-rider" },
         { name: "All Riders", path: "/riderlist" },
         { name: "Rider Payments", path: "/riderpayments" },
         { name: "Rider Queries", path: "/rdierqueries" },
