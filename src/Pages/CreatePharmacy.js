@@ -43,7 +43,7 @@ const VALIDATORS = {
     if (n < -180 || n > 180) return "Longitude must be between -180 and 180.";
     return "";
   },
-  shopAddress: (v) => {
+  address: (v) => {
     if (!v.trim()) return "Shop address is required.";
     if (v.trim().length < 10) return "Address seems too short (min 10 chars).";
     if (v.trim().length > 300) return "Address must be under 300 characters.";
@@ -67,17 +67,7 @@ const VALIDATORS = {
     if (v.trim().length > 50) return "License number must be under 50 characters.";
     return "";
   },
-  imageURL: (v) => {
-    if (!v) return "";
-    try {
-      const url = new URL(v);
-      if (!["http:", "https:"].includes(url.protocol))
-        return "Image URL must start with http or https.";
-    } catch {
-      return "Enter a valid URL.";
-    }
-    return "";
-  },
+  
 };
 
 const validateCategoryField = (field, value) => {
@@ -86,15 +76,7 @@ const validateCategoryField = (field, value) => {
     if (value.trim().length < 2) return "Name must be at least 2 characters.";
     if (value.trim().length > 60) return "Name must be under 60 characters.";
   }
-  if (field === "imageURL" && value) {
-    try {
-      const url = new URL(value);
-      if (!["http:", "https:"].includes(url.protocol))
-        return "URL must start with http or https.";
-    } catch {
-      return "Enter a valid URL.";
-    }
-  }
+  
   return "";
 };
 
@@ -151,7 +133,7 @@ export default function CreatePharmacy() {
     vendorPhone: "",
     latitude: "",
     longitude: "",
-    shopAddress: "",
+    address: "",
     aadhar: "",
     panCard: "",
     license: "",
@@ -229,15 +211,15 @@ export default function CreatePharmacy() {
   };
 
   // ── Validation Summary ──
-  const getFieldError = (field) => VALIDATORS[field]?.(fields[field]) || "";
+  const getFieldError = (field) =>
+  field === "imageURL" ? "" : VALIDATORS[field]?.(fields[field] ?? "") || "";
 
   const isFormValid = () => {
     const mainFieldsValid = Object.keys(VALIDATORS)
       .filter((k) => k !== "imageURL") // imageURL optional
       .every((k) => !getFieldError(k));
 
-    const imageURLValid = !getFieldError("imageURL");
-
+   
     const catValid = categories.every(
       (cat) =>
         !validateCategoryField("name", cat.name) &&
@@ -246,7 +228,7 @@ export default function CreatePharmacy() {
 
     const fileErrsClean = Object.values(fileErrors).every((e) => !e);
 
-    return mainFieldsValid && imageURLValid && catValid && fileErrsClean;
+    return mainFieldsValid && catValid && fileErrsClean;
   };
 
   // ── Submit ──
@@ -454,20 +436,20 @@ export default function CreatePharmacy() {
 
             <Field
               label="Shop Address *"
-              error={getFieldError("shopAddress")}
-              touched={touched.shopAddress}
+              error={getFieldError("address")}
+              touched={touched.address}
               className="md:col-span-2"
             >
               <textarea
-                value={fields.shopAddress}
-                onChange={(e) => handleChange("shopAddress", e.target.value)}
-                onBlur={() => handleBlur("shopAddress")}
+                value={fields.address}
+                onChange={(e) => handleChange("address", e.target.value)}
+                onBlur={() => handleBlur("address")}
                 rows={3}
                 placeholder="Full address including street, city, state, pincode"
-                className={inputCls(getFieldError("shopAddress"), touched.shopAddress)}
+                className={inputCls(getFieldError("address"), touched.address)}
               />
               <p className="text-xs text-gray-400 mt-1 text-right">
-                {fields.shopAddress.length}/300
+                {fields.address.length}/300
               </p>
             </Field>
           </div>
@@ -594,7 +576,7 @@ export default function CreatePharmacy() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <Field
               label="Image URL"
-              error={getFieldError("imageURL")}
+              error=""
               touched={touched.imageURL && !!fields.imageURL}
             >
               <input
