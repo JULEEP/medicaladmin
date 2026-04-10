@@ -17,6 +17,7 @@ export default function SingleOrder() {
     if (!order) return 0;
     
     const subtotal = order.totalAmount || 0;
+    console.log("Subtotal:", subtotal);
     const deliveryCharge = order.deliveryCharge || 0;
     const platformCharge = order.platformCharge || 0;
     const discountAmount = order.discountAmount || 0;

@@ -15,8 +15,7 @@ export default function Category() {
 
   const fetchCategories = async () => {
     try {
-      const query = filterService ? `?serviceName=${encodeURIComponent(filterService)}` : '';
-      const res = await fetch(`http://31.97.206.144:7021/api/category/allcategories${query}`);
+      const res = await fetch(`http://31.97.206.144:7021/api/category/allcategories`);
       const data = await res.json();
       setCategories(data.categories || []);
     } catch (err) {
@@ -26,7 +25,14 @@ export default function Category() {
 
   useEffect(() => {
     fetchCategories();
-  }, [filterService]);
+  }, []);
+
+  // Client-side filtering
+  const filteredCategories = filterService.trim()
+    ? categories.filter((cat) =>
+      cat.categoryName?.toLowerCase().includes(filterService.toLowerCase())
+    )
+    : categories;
 
   const resetForm = () => {
     setCategoryName('');
@@ -119,7 +125,7 @@ export default function Category() {
           />
         </div>
         <div>
-          <label className="block mb-1 font-medium">Service Name(Optional)</label>
+          <label className="block mb-1 font-medium">Service Name (Optional)</label>
           <input
             type="text"
             value={serviceName}
@@ -192,8 +198,8 @@ export default function Category() {
             </tr>
           </thead>
           <tbody>
-            {categories.length > 0 ? (
-              categories.map((cat, index) => (
+            {filteredCategories.length > 0 ? (
+              filteredCategories.map((cat, index) => (
                 <tr key={cat._id} className="border-b hover:bg-gray-50">
                   <td className="p-3">{index + 1}</td>
                   <td className="p-3">
@@ -202,8 +208,7 @@ export default function Category() {
                       alt={cat.categoryName}
                       className="w-12 h-12 rounded object-cover border"
                       onError={(e) =>
-                        (e.target.src =
-                          'https://via.placeholder.com/80?text=No+Image')
+                        (e.target.src = 'https://via.placeholder.com/80?text=No+Image')
                       }
                     />
                   </td>
@@ -230,7 +235,7 @@ export default function Category() {
             ) : (
               <tr>
                 <td colSpan="5" className="p-4 text-center text-gray-500">
-                  No categories available.
+                  No categories found.
                 </td>
               </tr>
             )}
@@ -244,10 +249,7 @@ export default function Category() {
           <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold">Edit Category</h3>
-              <button
-                onClick={resetForm}
-                className="text-gray-500 hover:text-gray-700"
-              >
+              <button onClick={resetForm} className="text-gray-500 hover:text-gray-700">
                 <FaTimes size={20} />
               </button>
             </div>
