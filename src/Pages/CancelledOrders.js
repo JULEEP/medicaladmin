@@ -190,7 +190,7 @@ const CancelledOrders = () => {
                   </td>
                   <td className="p-3 border">
                     <div className="flex justify-start gap-3">
-                      <button
+                      {/* <button
                         className="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
                         onClick={() => handleEdit(order)}
                         title="Edit Status"
@@ -205,7 +205,7 @@ const CancelledOrders = () => {
                       >
                         <FaUndo className="text-sm" />
                         <span className="text-xs">Restore</span>
-                      </button>
+                      </button> */}
                       <button
                         className="flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors"
                         onClick={() => handleDelete(order._id)}

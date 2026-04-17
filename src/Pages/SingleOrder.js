@@ -476,7 +476,7 @@ export default function SingleOrder() {
         <div className="space-y-2">
           <div className="flex justify-between">
             <span className="font-medium">Subtotal:</span>
-            <span>₹{(order.totalAmount || 0).toFixed(2)}</span>
+            <span>₹{(order.totalAmount-order.deliveryCharge-order.platformFee-order.discountAmount || 0).toFixed(2)}</span>
           </div>
           {order.deliveryCharge > 0 && (
             <div className="flex justify-between">
@@ -484,10 +484,10 @@ export default function SingleOrder() {
               <span>+ ₹{(order.deliveryCharge || 0).toFixed(2)}</span>
             </div>
           )}
-          {order.platformCharge > 0 && (
+          {order.platformFee > 0 && (
             <div className="flex justify-between">
               <span className="font-medium">Platform Charge:</span>
-              <span>+ ₹{(order.platformCharge || 0).toFixed(2)}</span>
+              <span>+ ₹{(order.platformFee || 0).toFixed(2)}</span>
             </div>
           )}
           {order.discountAmount > 0 && (
@@ -498,7 +498,7 @@ export default function SingleOrder() {
           )}
           <div className="flex justify-between font-bold text-lg border-t pt-2">
             <span>Final Amount:</span>
-            <span>₹{finalAmount.toFixed(2)}</span>
+            <span>₹{order.totalAmount.toFixed(2)}</span>
           </div>
         </div>
       </div>

@@ -72,6 +72,7 @@ const Sidebar = ({ isCollapsed, isMobile }) => {
         { name: "All Delivered Orders", path: "/alldeliveredorders" },
         { name: "All Peroidic Orders", path: "/preodicorders" },
         { name: "Prescription Orders", path: "/prescriptionorders" },
+        { name: "Cancelled Orders", path: "/cancelledorders" },
       ],
     },
     {
@@ -141,7 +142,7 @@ const Sidebar = ({ isCollapsed, isMobile }) => {
   return (
     <div
       className={`transition-all duration-300 ${
-        isMobile ? (isCollapsed ? "w-0" : "w-64") : isCollapsed ? "w-16" : "w-64"
+        isMobile ? (isCollapsed ? "w-0" : "w-64") : isCollapsed ? "w-20" : "w-64"
       } h-screen flex flex-col bg-blue-800`}
     >
       {/* ✅ Header (Sticky) */}

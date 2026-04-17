@@ -207,9 +207,9 @@ export default function Category() {
                       src={cat.image}
                       alt={cat.categoryName}
                       className="w-12 h-12 rounded object-cover border"
-                      onError={(e) =>
-                        (e.target.src = 'https://via.placeholder.com/80?text=No+Image')
-                      }
+                      // onError={(e) =>
+                      //   (e.target.src = 'https://via.placeholder.com/80?text=No+Image')
+                      // }
                     />
                   </td>
                   <td className="p-3 font-medium">{cat.categoryName}</td>

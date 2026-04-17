@@ -3,13 +3,14 @@ import {
   FiEye, FiEdit, FiTrash, FiDownload, FiFilter, 
   FiChevronLeft, FiChevronRight, FiX, FiCalendar,
   FiInbox, FiRefreshCw, FiPackage, FiUser,
-  FiDollarSign, FiClock, FiMapPin
+  FiDollarSign, FiClock, FiMapPin, FiFileText,
+  FiImage, FiInfo, FiPhone, FiMail, FiHash
 } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import logo from "../Images/logo.png"
+import { useNavigate } from "react-router-dom";
 
 export default function PrescriptionOrders() {
     const [orders, setOrders] = useState([]);
@@ -17,6 +18,7 @@ export default function PrescriptionOrders() {
     const [error, setError] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [statusForm, setStatusForm] = useState({ status: "", message: "" });
     const [filterState, setFilterState] = useState("");
@@ -79,8 +81,14 @@ export default function PrescriptionOrders() {
         setShowEditModal(true);
     };
 
+    // Open details modal
+    const openDetailsModal = (order) => {
+        setSelectedOrder(order);
+        setShowDetailsModal(true);
+    };
+
     // Update order status
-   const handleStatusUpdate = async () => {
+    const handleStatusUpdate = async () => {
         if (!statusForm.status || !statusForm.message) {
             alert("Please fill both status and message.");
             return;
@@ -169,7 +177,7 @@ export default function PrescriptionOrders() {
         }
     };
 
-    // Generate invoice HTML (same layout as screenshot)
+    // Generate invoice HTML
     const generateInvoiceHTML = (order) => {
         const orderDate = new Date(order.createdAt).toLocaleDateString();
         const totalAmount = order.totalAmount || 0;
@@ -183,139 +191,48 @@ export default function PrescriptionOrders() {
             <h2 style="margin: 5px 0; color:#333;">Prescription Invoice</h2>
         </div>
 
-      <!-- Company Info -->
-<table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 14px;">
-  <tr>
-    <!-- Left Side with Logo + Company Details -->
-    <td style="width:50%; vertical-align:top; text-align:left;">
-      <!-- ✅ Company Logo -->
-      <div style="margin-bottom: 8px;">
-        <img src="${logo}" alt="Company Logo" style="height:60px;" />
-      </div>
-
-      <!-- ✅ Company Details -->
-      <div>
-        <strong>CLYNIX LIMITED</strong><br/>
-        Address: 1-31, Chhediga dibbalu, Indrapalem, Kakinada.<br/>
-        State: Andhra Pradesh<br/>
-        Email ID: order@clynix.com
-      </div>
-    </td>
-
-    <!-- Right Side with Tax/Invoice Info -->
-    <td style="width:50%; vertical-align:top; text-align:right;">
-      <div>
-        PAN: KKHNDXXXXX<br/>
-        CIN: QW4321ddXXXXXXX<br/>
-        GSTIN: 38ABLDGJ3XXXXXXX<br/>
-        <strong>Invoice No:</strong> ${order._id}<br/>
-        <strong>Invoice Date:</strong> ${orderDate}
-      </div>
-    </td>
-  </tr>
-</table>
+        <!-- Company Info -->
+        <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 14px;">
+            <tr>
+                <td style="width:50%; vertical-align:top; text-align:left;">
+                    <div style="margin-bottom: 8px;">
+                        <img src="${logo}" alt="Company Logo" style="height:60px;" />
+                    </div>
+                    <div>
+                        <strong>CLYNIX LIMITED</strong><br/>
+                        Address: 1-31, Chhediga dibbalu, Indrapalem, Kakinada.<br/>
+                        State: Andhra Pradesh<br/>
+                        Email ID: order@clynix.com
+                    </div>
+                </td>
+                <td style="width:50%; vertical-align:top; text-align:right;">
+                    <div>
+                        PAN: KKHNDXXXXX<br/>
+                        CIN: QW4321ddXXXXXXX<br/>
+                        GSTIN: 38ABLDGJ3XXXXXXX<br/>
+                        <strong>Invoice No:</strong> ${order._id}<br/>
+                        <strong>Invoice Date:</strong> ${orderDate}
+                    </div>
+                </td>
+            </tr>
+        </table>
 
         <!-- Customer Details -->
         <div style="border:1px solid #ccc; padding:10px; margin-bottom:15px; font-size:14px;">
             <strong>Customer Details</strong><br/>
             Name: ${order.userId?.name || "N/A"}<br/>
             Mobile: ${order.userId?.mobile || "N/A"}<br/>
-            GSTIN: US5XXXXXX<br/>
+            Email: ${order.userId?.email || "N/A"}<br/>
             Delivery Address: ${order.deliveryAddress?.house || ""}, ${order.deliveryAddress?.street || ""}, ${order.deliveryAddress?.city || ""}, ${order.deliveryAddress?.state || ""} - ${order.deliveryAddress?.pincode || ""}<br/>
             Place of Supply: ${order.deliveryAddress?.state || "Andhra Pradesh (37)"}
         </div>
 
-        <!-- Service Details -->
+        <!-- Prescription Details -->
         <div style="border:1px solid #ccc; padding:10px; margin-bottom:15px; font-size:14px;">
-            <strong>Service Details</strong><br/>
-            HSN Code: 999799<br/>
-            Supply Description: Prescription Medicine Services
-        </div>
-
-        <!-- Order Items Table -->
-        <table style="width:100%; border-collapse: collapse; font-size:14px; margin-bottom:15px;">
-            <thead>
-                <tr style="background:#f0f0f0;">
-                    <th style="border:1px solid #ccc; padding:8px;">Sr.No</th>
-                    <th style="border:1px solid #ccc; padding:8px;">Particulars</th>
-                    <th style="border:1px solid #ccc; padding:8px;">Taxable Amount</th>
-                    <th style="border:1px solid #ccc; padding:8px;">CGST</th>
-                    <th style="border:1px solid #ccc; padding:8px;">SGST</th>
-                    <th style="border:1px solid #ccc; padding:8px;">Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${order.orderItems?.map((item, idx) => {
-            const itemTotal = (item.medicineId?.price || 0) * (item.quantity || 1);
-            return `
-                    <tr>
-                        <td style="border:1px solid #ccc; padding:8px;">${idx + 1}</td>
-                        <td style="border:1px solid #ccc; padding:8px;">
-                            Order ID: ${order._id}<br/>
-                            Order Date: ${orderDate}<br/>
-                            ${item.name || item.medicineId?.name || "Unknown Medicine"}<br/>
-                            Quantity: ${item.quantity || 1}
-                        </td>
-                        <td style="border:1px solid #ccc; padding:8px;">${itemTotal.toFixed(2)}</td>
-                        <td style="border:1px solid #ccc; padding:8px;">0.00</td>
-                        <td style="border:1px solid #ccc; padding:8px;">0.00</td>
-                        <td style="border:1px solid #ccc; padding:8px;">${itemTotal.toFixed(2)}</td>
-                    </tr>`;
-        }).join("")}
-                
-                <!-- Additional Charges -->
-                <tr>
-                    <td colspan="2" style="border:1px solid #ccc; padding:8px;">Subtotal</td>
-                    <td style="border:1px solid #ccc; padding:8px;">${order.subtotal?.toFixed(2) || totalAmount.toFixed(2)}</td>
-                    <td style="border:1px solid #ccc; padding:8px;">0.00</td>
-                    <td style="border:1px solid #ccc; padding:8px;">0.00</td>
-                    <td style="border:1px solid #ccc; padding:8px;">${order.subtotal?.toFixed(2) || totalAmount.toFixed(2)}</td>
-                </tr>
-                ${order.deliveryCharge ? `
-                <tr>
-                    <td colspan="2" style="border:1px solid #ccc; padding:8px;">Delivery Charge</td>
-                    <td style="border:1px solid #ccc; padding:8px;">${order.deliveryCharge.toFixed(2)}</td>
-                    <td style="border:1px solid #ccc; padding:8px;">0.00</td>
-                    <td style="border:1px solid #ccc; padding:8px;">0.00</td>
-                    <td style="border:1px solid #ccc; padding:8px;">${order.deliveryCharge.toFixed(2)}</td>
-                </tr>
-                ` : ''}
-                ${order.platformCharge ? `
-                <tr>
-                    <td colspan="2" style="border:1px solid #ccc; padding:8px;">Platform Charge</td>
-                    <td style="border:1px solid #ccc; padding:8px;">${order.platformCharge.toFixed(2)}</td>
-                    <td style="border:1px solid #ccc; padding:8px;">0.00</td>
-                    <td style="border:1px solid #ccc; padding:8px;">0.00</td>
-                    <td style="border:1px solid #ccc; padding:8px;">${order.platformCharge.toFixed(2)}</td>
-                </tr>
-                ` : ''}
-                ${order.discountAmount ? `
-                <tr>
-                    <td colspan="2" style="border:1px solid #ccc; padding:8px;">Discount</td>
-                    <td style="border:1px solid #ccc; padding:8px;">-${order.discountAmount.toFixed(2)}</td>
-                    <td style="border:1px solid #ccc; padding:8px;">0.00</td>
-                    <td style="border:1px solid #ccc; padding:8px;">0.00</td>
-                    <td style="border:1px solid #ccc; padding:8px;">-${order.discountAmount.toFixed(2)}</td>
-                </tr>
-                ` : ''}
-                
-                <tr style="font-weight:bold;">
-                    <td colspan="2" style="border:1px solid #ccc; padding:8px; text-align:right;">Total</td>
-                    <td style="border:1px solid #ccc; padding:8px;">${totalAmount.toFixed(2)}</td>
-                    <td style="border:1px solid #ccc; padding:8px;">0.00</td>
-                    <td style="border:1px solid #ccc; padding:8px;">0.00</td>
-                    <td style="border:1px solid #ccc; padding:8px;">${totalAmount.toFixed(2)}</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <!-- Additional Information -->
-        <div style="border:1px solid #ccc; padding:10px; margin-bottom:15px; font-size:14px;">
-            <strong>Additional Information</strong><br/>
-            Payment Method: ${order.paymentMethod || "Cash on Delivery"}<br/>
-            Payment Status: ${order.paymentStatus || "Pending"}<br/>
+            <strong>Prescription Details</strong><br/>
             Order Type: Prescription Order<br/>
-            Notes: ${order.notes || "No additional notes"}
+            Notes: ${order.notes || "No additional notes"}<br/>
+            ${order.images && order.images.length > 0 ? `Prescription Images: ${order.images.length} image(s) attached` : "No prescription images uploaded"}
         </div>
 
         <!-- Footer -->
@@ -337,34 +254,22 @@ export default function PrescriptionOrders() {
             { label: "Order ID", key: "_id" },
             { label: "User Name", key: "userName" },
             { label: "User Mobile", key: "userMobile" },
-            { label: "Medicines", key: "medicines" },
-            { label: "Total Amount", key: "totalAmount" },
-            { label: "Subtotal", key: "subtotal" },
-            { label: "Delivery Charge", key: "deliveryCharge" },
-            { label: "Platform Charge", key: "platformCharge" },
+            { label: "User Email", key: "userEmail" },
+            { label: "Notes", key: "notes" },
             { label: "Status", key: "status" },
-            { label: "Payment Method", key: "paymentMethod" },
-            { label: "Payment Status", key: "paymentStatus" },
             { label: "Date", key: "date" },
-            { label: "State", key: "state" }
+            { label: "Images Count", key: "imagesCount" }
         ];
 
         const data = filteredOrders.map(order => ({
             _id: order._id,
             userName: order.userId?.name || "N/A",
             userMobile: order.userId?.mobile || "N/A",
-            medicines: order.orderItems?.map(item =>
-                `${item.name || item.medicineId?.name} (Qty: ${item.quantity})`
-            ).join(", "),
-            totalAmount: order.totalAmount || 0,
-            subtotal: order.subtotal || 0,
-            deliveryCharge: order.deliveryCharge || 0,
-            platformCharge: order.platformCharge || 0,
+            userEmail: order.userId?.email || "N/A",
+            notes: order.notes || "N/A",
             status: order.status || "Pending",
-            paymentMethod: order.paymentMethod || "N/A",
-            paymentStatus: order.paymentStatus || "Pending",
             date: new Date(order.createdAt).toLocaleString(),
-            state: order.deliveryAddress?.state || "N/A"
+            imagesCount: order.images?.length || 0
         }));
 
         return { headers, data };
@@ -450,7 +355,7 @@ export default function PrescriptionOrders() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-6">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="mb-6">
                     <div className="flex justify-between items-center">
@@ -670,7 +575,6 @@ export default function PrescriptionOrders() {
                             </div>
                             <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to load orders</h3>
                             <p className="text-sm text-gray-500 mb-4">{error}</p>
-                           
                         </div>
                     </div>
                 )}
@@ -685,8 +589,8 @@ export default function PrescriptionOrders() {
                                         <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">S NO</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Order ID</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">User</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Medicines</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Total</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Notes</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Images</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
@@ -760,23 +664,17 @@ export default function PrescriptionOrders() {
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <div className="max-w-xs">
-                                                        {order.orderItems?.map((item, i) => (
-                                                            <div key={i} className="text-xs mb-1 pb-1 border-b border-gray-100 last:border-b-0">
-                                                                <span className="font-medium">
-                                                                    {item.name || item.medicineId?.name || "Unknown Medicine"}
-                                                                </span>
-                                                                <span className="text-gray-500 ml-1">
-                                                                    (Qty: {item.quantity || 1})
-                                                                </span>
-                                                            </div>
-                                                        ))}
+                                                    <div className="text-sm text-gray-600 max-w-xs truncate">
+                                                        {order.notes || "No notes"}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <span className="text-sm font-semibold text-blue-600">
-                                                        ₹{order.totalAmount ? order.totalAmount.toFixed(2) : "0.00"}
-                                                    </span>
+                                                    <div className="flex items-center">
+                                                        <FiImage className="h-4 w-4 text-gray-400 mr-1" />
+                                                        <span className="text-sm text-gray-600">
+                                                            {order.images?.length || 0} images
+                                                        </span>
+                                                    </div>
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(order.status)}`}>
@@ -792,7 +690,7 @@ export default function PrescriptionOrders() {
                                                 <td className="px-4 py-3">
                                                     <div className="flex space-x-2">
                                                         <button
-                                                            onClick={() => navigate(`/admin/orders/${order._id}`)}
+                                                            onClick={() => openDetailsModal(order)}
                                                             className="p-1.5 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors"
                                                             title="View Details"
                                                         >
@@ -884,6 +782,176 @@ export default function PrescriptionOrders() {
                     </div>
                 )}
             </div>
+
+            {/* Order Details Modal */}
+            {showDetailsModal && selectedOrder && (
+                <div className="fixed inset-0 z-50 overflow-y-auto">
+                    <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                        <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setShowDetailsModal(false)}></div>
+
+                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="flex items-center">
+                                        <FiFileText className="h-6 w-6 text-blue-600 mr-2" />
+                                        <h3 className="text-lg font-medium text-gray-900">Prescription Order Details</h3>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowDetailsModal(false)}
+                                        className="text-gray-400 hover:text-gray-500"
+                                    >
+                                        <FiX className="h-6 w-6" />
+                                    </button>
+                                </div>
+
+                                <div className="mt-4 space-y-6">
+                                    {/* Order Information */}
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <h4 className="text-md font-semibold text-gray-900 mb-3 flex items-center">
+                                            <FiInfo className="h-4 w-4 mr-2 text-blue-600" />
+                                            Order Information
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-xs font-medium text-gray-500">Order ID</label>
+                                                <p className="text-sm text-gray-900 font-mono">{selectedOrder._id}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-medium text-gray-500">Status</label>
+                                                <p className="mt-1">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(selectedOrder.status)}`}>
+                                                        {selectedOrder.status || "Pending"}
+                                                    </span>
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-medium text-gray-500">Created Date</label>
+                                                <p className="text-sm text-gray-900">{new Date(selectedOrder.createdAt).toLocaleString()}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-medium text-gray-500">Last Updated</label>
+                                                <p className="text-sm text-gray-900">{new Date(selectedOrder.updatedAt).toLocaleString()}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Customer Information */}
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <h4 className="text-md font-semibold text-gray-900 mb-3 flex items-center">
+                                            <FiUser className="h-4 w-4 mr-2 text-blue-600" />
+                                            Customer Information
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-xs font-medium text-gray-500">Name</label>
+                                                <p className="text-sm text-gray-900">{selectedOrder.userId?.name || "N/A"}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-medium text-gray-500">Email</label>
+                                                <p className="text-sm text-gray-900 flex items-center">
+                                                    <FiMail className="h-3 w-3 mr-1 text-gray-400" />
+                                                    {selectedOrder.userId?.email || "N/A"}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-medium text-gray-500">Mobile</label>
+                                                <p className="text-sm text-gray-900 flex items-center">
+                                                    <FiPhone className="h-3 w-3 mr-1 text-gray-400" />
+                                                    {selectedOrder.userId?.mobile || "N/A"}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-medium text-gray-500">User ID</label>
+                                                <p className="text-sm text-gray-900 font-mono text-xs">{selectedOrder.userId?._id}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Prescription Details */}
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <h4 className="text-md font-semibold text-gray-900 mb-3 flex items-center">
+                                            <FiFileText className="h-4 w-4 mr-2 text-blue-600" />
+                                            Prescription Details
+                                        </h4>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label className="text-xs font-medium text-gray-500">Notes</label>
+                                                <p className="text-sm text-gray-900 mt-1 bg-white p-2 rounded border border-gray-200">
+                                                    {selectedOrder.notes || "No additional notes"}
+                                                </p>
+                                            </div>
+                                            
+                                            {selectedOrder.images && selectedOrder.images.length > 0 && (
+                                                <div>
+                                                    <label className="text-xs font-medium text-gray-500 mb-2 block">
+                                                        Prescription Images ({selectedOrder.images.length})
+                                                    </label>
+                                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                                        {selectedOrder.images.map((image, index) => (
+                                                            <div key={index} className="relative group">
+                                                                <img
+                                                                    src={image}
+                                                                    alt={`Prescription ${index + 1}`}
+                                                                    className="w-full h-32 object-cover rounded-lg border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
+                                                                    onClick={() => window.open(image, '_blank')}
+                                                                />
+                                                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center">
+                                                                    <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">Click to view</span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Delivery Address (if available) */}
+                                    {selectedOrder.deliveryAddress && (
+                                        <div className="bg-gray-50 rounded-lg p-4">
+                                            <h4 className="text-md font-semibold text-gray-900 mb-3 flex items-center">
+                                                <FiMapPin className="h-4 w-4 mr-2 text-blue-600" />
+                                                Delivery Address
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="md:col-span-2">
+                                                    <p className="text-sm text-gray-900">
+                                                        {selectedOrder.deliveryAddress.house && `${selectedOrder.deliveryAddress.house}, `}
+                                                        {selectedOrder.deliveryAddress.street && `${selectedOrder.deliveryAddress.street}, `}
+                                                        {selectedOrder.deliveryAddress.city && `${selectedOrder.deliveryAddress.city}, `}
+                                                        {selectedOrder.deliveryAddress.state && `${selectedOrder.deliveryAddress.state} - `}
+                                                        {selectedOrder.deliveryAddress.pincode}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDetailsModal(false)}
+                                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                                >
+                                    Close
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowDetailsModal(false);
+                                        openEditModal(selectedOrder);
+                                    }}
+                                    className="mt-3 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                                >
+                                    Edit Status
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Edit Status Modal */}
             {showEditModal && selectedOrder && (
