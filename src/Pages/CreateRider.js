@@ -205,7 +205,7 @@ export default function CreateRider() {
       if (profileImage) formData.append("profileImage", profileImage);
       rideImages.forEach((img) => formData.append("rideImages", img));
 
-      const res = await fetch("http://31.97.206.144:7021/api/admin/create-rider", {
+      const res = await fetch("https://api.simcurarx.com/api/admin/create-rider", {
         method: "POST",
         body: formData,
       });

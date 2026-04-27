@@ -15,7 +15,7 @@ const WithdrawalRequestsPage = () => {
   const fetchRequests = async () => {
     try {
       const res = await axios.get(
-        "http://31.97.206.144:7021/api/admin/withdrawal-requests"
+        "https://api.simcurarx.com/api/admin/withdrawal-requests"
       );
       setRequests(res.data.requests);
     } catch (error) {
@@ -31,7 +31,7 @@ const WithdrawalRequestsPage = () => {
   const handleDelete = async (id) => {
     try {
       await axios.delete(
-        `http://31.97.206.144:7021/api/admin/deletewithdrawal-requests/${id}`
+        `https://api.simcurarx.com/api/admin/deletewithdrawal-requests/${id}`
       );
       setRequests(requests.filter((r) => r._id !== id));
     } catch (error) {
@@ -54,7 +54,7 @@ const WithdrawalRequestsPage = () => {
   const handleUpdateStatus = async () => {
     try {
       const res = await axios.put(
-        `http://31.97.206.144:7021/api/admin/approvewithdrawalrequests/${selectedRequest._id}`,
+        `https://api.simcurarx.com/api/admin/approvewithdrawalrequests/${selectedRequest._id}`,
         { status: newStatus }
       );
 

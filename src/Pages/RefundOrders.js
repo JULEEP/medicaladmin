@@ -13,7 +13,7 @@ export default function RefundOrders() {
 
   const fetchRefundOrders = async () => {
     try {
-      const res = await axios.get("http://31.97.206.144:7021/api/admin/refund-orders");
+      const res = await axios.get("https://api.simcurarx.com/api/admin/refund-orders");
       setOrders(res.data.refundOrders);
     } catch (error) {
       console.error("Error fetching refund orders:", error);

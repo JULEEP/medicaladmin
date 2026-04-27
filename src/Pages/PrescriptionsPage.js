@@ -22,7 +22,7 @@ const PrescriptionsPage = () => {
     setError("");
     try {
       const res = await axios.get(
-        "http://31.97.206.144:7021/api/admin/alluploadprescription"
+        "https://api.simcurarx.com/api/admin/alluploadprescription"
       );
       const data = res.data.prescriptions || [];
       setPrescriptions(data);
@@ -64,7 +64,7 @@ const PrescriptionsPage = () => {
     if (!window.confirm("Are you sure you want to delete this prescription?")) return;
     try {
       await axios.delete(
-        `http://31.97.206.144:7021/api/admin/deleteprescription/${id}`
+        `https://api.simcurarx.com/api/admin/deleteprescription/${id}`
       );
       
       // Update both states

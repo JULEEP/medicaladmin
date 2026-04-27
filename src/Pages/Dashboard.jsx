@@ -87,7 +87,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await axios.get("http://31.97.206.144:7021/api/admin/dashboard");
+        const res = await axios.get("https://api.simcurarx.com/api/admin/dashboard");
         setDashboardData(res.data);
         
         // After data loads, check if we need to restore scroll position
@@ -106,7 +106,7 @@ const Dashboard = () => {
 
     const fetchVendors = async () => {
       try {
-        const res = await axios.get("http://31.97.206.144:7021/api/pharmacy/getallpjarmacy");
+        const res = await axios.get("https://api.simcurarx.com/api/pharmacy/getallpjarmacy");
         
         // Handle different response formats
         let vendorsData = [];
@@ -141,13 +141,13 @@ const Dashboard = () => {
     try {
       if (selectedVendor === "all") {
         const vendorIds = vendors.map(vendor => vendor._id || vendor.id);
-        await axios.post("http://31.97.206.144:7021/api/admin/send-message", {
+        await axios.post("https://api.simcurarx.com/api/admin/send-message", {
           vendorIds,
           message
         });
         setMessageStatus({ type: "success", text: `Message sent to all ${vendorIds.length} vendors` });
       } else {
-        await axios.post("http://31.97.206.144:7021/api/admin/send-message", {
+        await axios.post("https://api.simcurarx.com/api/admin/send-message", {
           vendorId: selectedVendor,
           message
         });

@@ -26,7 +26,7 @@ export default function PharmacyDetails() {
     setError("");
     try {
       const res = await fetch(
-        `http://31.97.206.144:7021/api/pharmacy/singlepharmacy/${pharmacyId}`
+        `https://api.simcurarx.com/api/pharmacy/singlepharmacy/${pharmacyId}`
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to fetch pharmacy");
@@ -71,7 +71,7 @@ export default function PharmacyDetails() {
       }
 
       const response = await fetch(
-        `http://31.97.206.144:7021/api/pharmacy/updatepharmacy/${pharmacyId}`,
+        `https://api.simcurarx.com/api/pharmacy/updatepharmacy/${pharmacyId}`,
         {
           method: "PUT",
           body: formData,
@@ -134,7 +134,7 @@ export default function PharmacyDetails() {
       formData.append('categories', JSON.stringify([]));
 
       const response = await fetch(
-        `http://31.97.206.144:7021/api/pharmacy/updatepharmacy/${pharmacyId}`,
+        `https://api.simcurarx.com/api/pharmacy/updatepharmacy/${pharmacyId}`,
         {
           method: "PUT",
           body: formData,
@@ -180,7 +180,7 @@ export default function PharmacyDetails() {
       formData.append('categories', JSON.stringify(updatedCategories));
 
       const response = await fetch(
-        `http://31.97.206.144:7021/api/pharmacy/updatepharmacy/${pharmacyId}`,
+        `https://api.simcurarx.com/api/pharmacy/updatepharmacy/${pharmacyId}`,
         {
           method: "PUT",
           body: formData,

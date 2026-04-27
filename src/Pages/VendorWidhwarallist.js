@@ -32,7 +32,7 @@ export default function AdminWithdrawalManagement() {
   const fetchWithdrawals = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://31.97.206.144:7021/api/admin/allvendorwidrawal?page=${currentPage}&limit=${itemsPerPage}`);
+      const response = await fetch(`https://api.simcurarx.com/api/admin/allvendorwidrawal?page=${currentPage}&limit=${itemsPerPage}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Failed to fetch withdrawal requests");
       setWithdrawals(data.withdrawals || []);
@@ -84,7 +84,7 @@ export default function AdminWithdrawalManagement() {
     if (!window.confirm(`Change status to "${statusUpdateData.status}"?`)) return;
     setUpdatingStatus(true);
     try {
-      const response = await fetch(`http://31.97.206.144:7021/api/admin/updatewidh-status/${statusUpdateData.withdrawalId}`, {
+      const response = await fetch(`https://api.simcurarx.com/api/admin/updatewidh-status/${statusUpdateData.withdrawalId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: statusUpdateData.status }),

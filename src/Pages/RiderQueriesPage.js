@@ -13,7 +13,7 @@ const RiderQueriesPage = () => {
 
   const fetchRiderQueries = async () => {
     const res = await axios.get(
-      "http://31.97.206.144:7021/api/admin/riderqueries"
+      "https://api.simcurarx.com/api/admin/riderqueries"
     );
     setQueries(res.data.queries || []);
   };
@@ -22,7 +22,7 @@ const RiderQueriesPage = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this query?")) return;
-    await axios.delete(`http://31.97.206.144:7021/api/admin/deletequeries/${id}`);
+    await axios.delete(`https://api.simcurarx.com/api/admin/deletequeries/${id}`);
     setQueries((prev) => prev.filter((q) => q._id !== id));
   };
 
@@ -39,7 +39,7 @@ const RiderQueriesPage = () => {
     const updatedAt = new Date().toISOString();
 
     await axios.put(
-      `http://31.97.206.144:7021/api/admin/updatequeries/${selectedQuery._id}`,
+      `https://api.simcurarx.com/api/admin/updatequeries/${selectedQuery._id}`,
       { status: newStatus, updatedAt }
     );
 

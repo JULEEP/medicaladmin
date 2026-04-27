@@ -38,8 +38,8 @@ const Navbar = ({ setIsCollapsed, isCollapsed }) => {
   const fetchCounts = async () => {
     try {
       const [notifRes, prescriptionRes] = await Promise.all([
-        axios.get("http://31.97.206.144:7021/api/admin/allnotifications"),
-        axios.get("http://31.97.206.144:7021/api/admin/alluploadprescription"),
+        axios.get("https://api.simcurarx.com/api/admin/allnotifications"),
+        axios.get("https://api.simcurarx.com/api/admin/alluploadprescription"),
       ]);
 
       const notifications = notifRes.data.notifications || [];
@@ -103,7 +103,7 @@ const Navbar = ({ setIsCollapsed, isCollapsed }) => {
   // ✅ Mark all as read locally
   const handleNotificationsClick = async () => {
     try {
-      const notifRes = await axios.get("http://31.97.206.144:7021/api/admin/allnotifications");
+      const notifRes = await axios.get("https://api.simcurarx.com/api/admin/allnotifications");
       const notifications = notifRes.data.notifications || [];
 
       notifications.forEach((n) => readNotificationIds.current.add(n._id));

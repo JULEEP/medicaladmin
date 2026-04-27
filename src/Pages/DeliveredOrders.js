@@ -15,7 +15,7 @@ export default function DeliveredOrders() {
 
   const fetchDeliveredOrders = async () => {
     try {
-      const res = await axios.get("http://31.97.206.144:7021/api/admin/delivered-orders");
+      const res = await axios.get("https://api.simcurarx.com/api/admin/delivered-orders");
       setOrders(res.data.orders);
     } catch (error) {
       console.error("Error fetching delivered orders:", error);

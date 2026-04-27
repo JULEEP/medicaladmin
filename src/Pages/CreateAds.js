@@ -24,7 +24,7 @@ const CreateAds = () => {
         formData.append("image", image);
       }
 
-      const res = await axios.post("http://31.97.206.144:7021/api/admin/create-ads", formData, {
+      const res = await axios.post("https://api.simcurarx.com/api/admin/create-ads", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

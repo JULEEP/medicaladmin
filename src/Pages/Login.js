@@ -15,7 +15,7 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://31.97.206.144:7021/api/admin/login', {
+      const response = await axios.post('https://api.simcurarx.com/api/admin/login', {
         email,
         password
       });

@@ -17,7 +17,7 @@ const AddCoupon = () => {
     }
 
     try {
-      const response = await axios.post('http://31.97.206.144:7021/api/admin/addcoupon', {
+      const response = await axios.post('https://api.simcurarx.com/api/admin/addcoupon', {
         couponCode,
         discountPercentage,
         expirationDate,

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FiTrash2, FiEdit3, FiSearch } from "react-icons/fi";
 
-const API = "http://31.97.206.144:7021/api/admin";
+const API = "https://api.simcurarx.com/api/admin";
 
 const VendorQueriesPage = () => {
   const [queries, setQueries] = useState([]);

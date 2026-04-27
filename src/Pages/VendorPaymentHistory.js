@@ -18,7 +18,7 @@ const VendorPaymentHistory = () => {
         setLoading(true);
         setError('');
         try {
-            const response = await fetch('http://31.97.206.144:7021/api/pharmacy/paymenthistory');
+            const response = await fetch('https://api.simcurarx.com/api/pharmacy/paymenthistory');
             const data = await response.json();
 
             if (!response.ok) {

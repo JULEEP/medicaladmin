@@ -23,7 +23,7 @@ const QueriesPage = () => {
   const fetchQueries = async () => {
     try {
       const res = await axios.get(
-        "http://31.97.206.144:7021/api/admin/allqueries"
+        "https://api.simcurarx.com/api/admin/allqueries"
       );
       setQueries(res.data);
     } catch (error) {
@@ -75,7 +75,7 @@ const QueriesPage = () => {
 
     try {
       await axios.delete(
-        `http://31.97.206.144:7021/api/admin/deletequeries/${id}`
+        `https://api.simcurarx.com/api/admin/deletequeries/${id}`
       );
       setQueries(queries.filter((q) => q._id !== id));
     } catch (error) {
@@ -89,7 +89,7 @@ const QueriesPage = () => {
       const updatedAt = new Date().toISOString();
 
       await axios.put(
-        `http://31.97.206.144:7021/api/admin/updatequeries/${selectedQuery._id}`,
+        `https://api.simcurarx.com/api/admin/updatequeries/${selectedQuery._id}`,
         { status: newStatus, updatedAt }
       );
 

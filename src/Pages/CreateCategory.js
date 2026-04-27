@@ -15,7 +15,7 @@ export default function Category() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch(`http://31.97.206.144:7021/api/category/allcategories`);
+      const res = await fetch(`https://api.simcurarx.com/api/category/allcategories`);
       const data = await res.json();
       setCategories(data.categories || []);
     } catch (err) {
@@ -58,8 +58,8 @@ export default function Category() {
     }
 
     const endpoint = editingCategory
-      ? `http://31.97.206.144:7021/api/category/updatecategory/${editingCategory._id}`
-      : 'http://31.97.206.144:7021/api/category/create-category';
+      ? `https://api.simcurarx.com/api/category/updatecategory/${editingCategory._id}`
+      : 'https://api.simcurarx.com/api/category/create-category';
 
     try {
       const res = await fetch(endpoint, {
@@ -90,7 +90,7 @@ export default function Category() {
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch(`http://31.97.206.144:7021/api/category/deletecategory/${id}`, {
+      const res = await fetch(`https://api.simcurarx.com/api/category/deletecategory/${id}`, {
         method: 'DELETE',
       });
       const data = await res.json();

@@ -19,7 +19,7 @@ const GetCoupons = () => {
 
   const fetchCoupons = async () => {
     try {
-      const res = await axios.get("http://31.97.206.144:7021/api/admin/getcoupons");
+      const res = await axios.get("https://api.simcurarx.com/api/admin/getcoupons");
       setCoupons(res.data.coupons);
       setLoading(false);
     } catch {
@@ -34,7 +34,7 @@ const GetCoupons = () => {
   const handleDeleteCoupon = async (id) => {
     if (!window.confirm("Delete this coupon?")) return;
 
-    await axios.delete(`http://31.97.206.144:7021/api/admin/deletecoupon/${id}`);
+    await axios.delete(`https://api.simcurarx.com/api/admin/deletecoupon/${id}`);
     setCoupons(coupons.filter((c) => c._id !== id));
     setMessage("Coupon deleted successfully");
     setMessageType("success");
@@ -55,7 +55,7 @@ const GetCoupons = () => {
     };
 
     await axios.put(
-      `http://31.97.206.144:7021/api/admin/editcoupon/${selectedCoupon._id}`,
+      `https://api.simcurarx.com/api/admin/editcoupon/${selectedCoupon._id}`,
       updatedCoupon
     );
 

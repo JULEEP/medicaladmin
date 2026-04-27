@@ -38,7 +38,7 @@ export default function PrescriptionOrders() {
         setLoading(true);
         setError("");
         try {
-            const res = await fetch("http://31.97.206.144:7021/api/admin/prescription-orders");
+            const res = await fetch("https://api.simcurarx.com/api/admin/prescription-orders");
             const data = await res.json();
 
             if (!res.ok) throw new Error(data.message || "Failed to fetch prescription orders");
@@ -59,7 +59,7 @@ export default function PrescriptionOrders() {
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this prescription order?")) return;
         try {
-            const res = await fetch(`http://31.97.206.144:7021/api/admin/deleteorder/${id}`, {
+            const res = await fetch(`https://api.simcurarx.com/api/admin/deleteorder/${id}`, {
                 method: "DELETE",
             });
             const data = await res.json();
@@ -95,7 +95,7 @@ export default function PrescriptionOrders() {
         }
         try {
             const res = await fetch(
-                `http://31.97.206.144:7021/api/admin/ordersstatus/${selectedOrder.userId._id}/${selectedOrder._id}`,
+                `https://api.simcurarx.com/api/admin/ordersstatus/${selectedOrder.userId._id}/${selectedOrder._id}`,
                 {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },

@@ -36,7 +36,7 @@ export default function PeriodicOrders() {
         setLoading(true);
         setError("");
         try {
-            const res = await fetch("http://31.97.206.144:7021/api/admin/allpreodicorders");
+            const res = await fetch("https://api.simcurarx.com/api/admin/allpreodicorders");
             const data = await res.json();
 
             if (!res.ok) throw new Error(data.message || "Failed to fetch orders");
@@ -57,7 +57,7 @@ export default function PeriodicOrders() {
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this periodic order?")) return;
         try {
-            const res = await fetch(`http://31.97.206.144:7021/api/admin/deletepreodicorders/${id}`, {
+            const res = await fetch(`https://api.simcurarx.com/api/admin/deletepreodicorders/${id}`, {
                 method: "DELETE",
             });
             const data = await res.json();
@@ -87,7 +87,7 @@ export default function PeriodicOrders() {
         }
         try {
             const res = await fetch(
-                `http://31.97.206.144:7021/api/admin/updatepreodicorders/${selectedOrder.userId._id}/${selectedOrder._id}`,
+                `https://api.simcurarx.com/api/admin/updatepreodicorders/${selectedOrder.userId._id}/${selectedOrder._id}`,
                 {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },

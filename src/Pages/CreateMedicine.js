@@ -28,7 +28,7 @@ export default function CreateMedicine() {
 
   // Fetch pharmacies for dropdown
   useEffect(() => {
-    fetch("http://31.97.206.144:7021/api/pharmacy/getallpjarmacy")
+    fetch("https://api.simcurarx.com/api/pharmacy/getallpjarmacy")
       .then((res) => res.json())
       .then((data) => setPharmacies(data?.pharmacies || []))
       .catch(() => setError("Failed to load pharmacies"));
@@ -95,7 +95,7 @@ export default function CreateMedicine() {
       }
 
       const response = await fetch(
-        `http://31.97.206.144:7021/api/pharmacy/updatepharmacy/${pharmacyId}`,
+        `https://api.simcurarx.com/api/pharmacy/updatepharmacy/${pharmacyId}`,
         {
           method: "PUT",
           body: formData,
@@ -167,7 +167,7 @@ export default function CreateMedicine() {
 
     try {
       const res = await fetch(
-        "http://31.97.206.144:7021/api/pharmacy/create-medicine",
+        "https://api.simcurarx.com/api/pharmacy/create-medicine",
         {
           method: "POST",
           body: formData,

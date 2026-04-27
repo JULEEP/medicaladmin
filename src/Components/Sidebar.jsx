@@ -12,7 +12,7 @@ const Sidebar = ({ isCollapsed, isMobile }) => {
 
   const handleLogout = async () => {
     try {
-      await axios.post("http://31.97.206.144:7021/api/admin/logout", {}, { withCredentials: true });
+      await axios.post("https://api.simcurarx.com/api/admin/logout", {}, { withCredentials: true });
       localStorage.removeItem("authToken");
       alert("Logout successful");
       window.location.href = "/";

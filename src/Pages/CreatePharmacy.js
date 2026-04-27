@@ -274,7 +274,7 @@ export default function CreatePharmacy() {
 
     try {
       const res = await fetch(
-        "http://31.97.206.144:7021/api/pharmacy/create-pharmacy",
+        "https://api.simcurarx.com/api/pharmacy/create-pharmacy",
         { method: "POST", body: formData }
       );
       const data = await res.json();

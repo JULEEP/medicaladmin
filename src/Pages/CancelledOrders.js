@@ -14,7 +14,7 @@ const CancelledOrders = () => {
   useEffect(() => {
     const fetchCancelledOrders = async () => {
       try {
-        const response = await axios.get("http://31.97.206.144:7021/api/admin/getallcancelledorders");
+        const response = await axios.get("https://api.simcurarx.com/api/admin/getallcancelledorders");
         if (response.data && response.data.orders) {
           setOrdersData(response.data.orders);
         }
@@ -43,7 +43,7 @@ const CancelledOrders = () => {
     if (selectedOrder) {
       try {
         // Update status in the backend
-        await axios.put(`http://31.97.206.144:7021/api/admin/orderstatus/${selectedOrder._id}`, { 
+        await axios.put(`https://api.simcurarx.com/api/admin/orderstatus/${selectedOrder._id}`, { 
           status: newStatus 
         });
 
@@ -71,7 +71,7 @@ const CancelledOrders = () => {
   const handleRestoreOrder = async (orderId) => {
     if (window.confirm("Are you sure you want to restore this order?")) {
       try {
-        await axios.put(`http://31.97.206.144:7021/api/admin/orderstatus/${orderId}`, { 
+        await axios.put(`https://api.simcurarx.com/api/admin/orderstatus/${orderId}`, { 
           status: "Pending" 
         });
 
@@ -88,7 +88,7 @@ const CancelledOrders = () => {
   const handleDelete = async (orderId) => {
     if (window.confirm("Are you sure you want to permanently delete this cancelled order?")) {
       try {
-        await axios.delete(`http://31.97.206.144:7021/api/admin/order/${orderId}`);
+        await axios.delete(`https://api.simcurarx.com/api/admin/order/${orderId}`);
 
         // Remove the order from the local state
         setOrdersData(ordersData.filter((order) => order._id !== orderId));

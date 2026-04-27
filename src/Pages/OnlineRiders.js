@@ -33,7 +33,7 @@ export default function OnlineRiders() {
     const fetchOnlineRiders = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("http://31.97.206.144:7021/api/admin/onlineriders");
+        const res = await axios.get("https://api.simcurarx.com/api/admin/onlineriders");
         setRiders(res.data.riders || []);
       } catch (err) {
         console.error("Error fetching online riders:", err);
@@ -48,7 +48,7 @@ export default function OnlineRiders() {
     if (window.confirm("Are you sure you want to delete this rider?")) {
       try {
         const res = await axios.delete(
-          `http://31.97.206.144:7021/api/admin/delete-rider/${id}`
+          `https://api.simcurarx.com/api/admin/delete-rider/${id}`
         );
         console.log("Delete Success:", res.data);
         setRiders((prev) => prev.filter((r) => r._id !== id));
@@ -63,14 +63,14 @@ export default function OnlineRiders() {
     e.preventDefault();
     try {
       const res = await axios.put(
-        `http://31.97.206.144:7021/api/admin/update-rider/${selectedRider._id}`,
+        `https://api.simcurarx.com/api/admin/update-rider/${selectedRider._id}`,
         selectedRider
       );
       console.log("Update Success:", res.data);
       alert("Rider updated successfully!");
       setIsEditModal(false);
       // Refresh the list after update
-      const updatedRes = await axios.get("http://31.97.206.144:7021/api/admin/onlineriders");
+      const updatedRes = await axios.get("https://api.simcurarx.com/api/admin/onlineriders");
       setRiders(updatedRes.data.riders || []);
     } catch (err) {
       console.error("Error updating rider:", err);

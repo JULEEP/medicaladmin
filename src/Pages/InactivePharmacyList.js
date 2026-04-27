@@ -41,7 +41,7 @@ export default function InactivePharmacyList() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://31.97.206.144:7021/api/admin/getallinactiveorders");
+      const res = await fetch("https://api.simcurarx.com/api/admin/getallinactiveorders");
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to fetch inactive pharmacies");
       setPharmacies(data.pharmacies || []);
@@ -150,7 +150,7 @@ export default function InactivePharmacyList() {
 
     try {
       const res = await fetch(
-        `http://31.97.206.144:7021/api/pharmacy/updatepharmacy/${editingPharmacy._id}`,
+        `https://api.simcurarx.com/api/pharmacy/updatepharmacy/${editingPharmacy._id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -185,7 +185,7 @@ export default function InactivePharmacyList() {
     if (!window.confirm("Are you sure you want to delete this pharmacy?")) return;
 
     try {
-      const res = await fetch(`http://31.97.206.144:7021/api/pharmacy/deletepharmacy/${id}`, {
+      const res = await fetch(`https://api.simcurarx.com/api/pharmacy/deletepharmacy/${id}`, {
         method: "DELETE",
       });
       const data = await res.json();
@@ -223,7 +223,7 @@ export default function InactivePharmacyList() {
 
   const updatePaymentStatus = async (month, status, amount) => {
     try {
-      const res = await fetch(`http://31.97.206.144:7021/api/pharmacy/updatepayment/${revenueModal._id}`, {
+      const res = await fetch(`https://api.simcurarx.com/api/pharmacy/updatepayment/${revenueModal._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

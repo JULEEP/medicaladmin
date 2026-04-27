@@ -16,7 +16,7 @@ const FAQForm = () => {
   // ✅ Fetch FAQs from backend on component mount
   const fetchFAQs = async () => {
     try {
-      const response = await axios.get("http://31.97.206.144:7021/api/admin/allfaq");
+      const response = await axios.get("https://api.simcurarx.com/api/admin/allfaq");
       setFaqList(response.data.faqs || []);
       setLoading(false);
     } catch (error) {
@@ -35,7 +35,7 @@ const FAQForm = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://31.97.206.144:7021/api/admin/createfaq", {
+      const response = await axios.post("https://api.simcurarx.com/api/admin/createfaq", {
         question,
         answer,
         date,
@@ -66,7 +66,7 @@ const FAQForm = () => {
   if (!confirmDelete) return; // If cancelled, do nothing
 
   try {
-    const response = await axios.delete(`http://31.97.206.144:7021/api/admin/deletefaq/${id}`);
+    const response = await axios.delete(`https://api.simcurarx.com/api/admin/deletefaq/${id}`);
     if (response.status === 200) {
       setSuccessMessage("FAQ deleted successfully!");
       setErrorMessage("");

@@ -19,7 +19,7 @@ const TodaysOrders = () => {
   useEffect(() => {
     const fetchTodaysOrders = async () => {
       try {
-        const response = await axios.get("http://31.97.206.144:7021/api/admin/todayorders");
+        const response = await axios.get("https://api.simcurarx.com/api/admin/todayorders");
         if (response.data && response.data.orders) {
           setOrdersData(response.data.orders);
         }
@@ -48,7 +48,7 @@ const TodaysOrders = () => {
     if (selectedOrder) {
       try {
         // Update status in the backend
-        await axios.put(`http://31.97.206.144:7021/api/admin/orderstatus/${selectedOrder._id}`, { 
+        await axios.put(`https://api.simcurarx.com/api/admin/orderstatus/${selectedOrder._id}`, { 
           status: newStatus 
         });
 
@@ -71,7 +71,7 @@ const TodaysOrders = () => {
   const handleDelete = async (orderId) => {
     if (window.confirm("Are you sure you want to delete this order?")) {
       try {
-        await axios.delete(`http://31.97.206.144:7021/api/admin/deleteorder/${orderId}`);
+        await axios.delete(`https://api.simcurarx.com/api/admin/deleteorder/${orderId}`);
 
         // Remove the order from the local state
         setOrdersData(ordersData.filter((order) => order._id !== orderId));
@@ -89,7 +89,7 @@ const TodaysOrders = () => {
     setError(null);
     const fetchTodaysOrders = async () => {
       try {
-        const response = await axios.get("http://31.97.206.144:7021/api/admin/todayorders");
+        const response = await axios.get("https://api.simcurarx.com/api/admin/todayorders");
         if (response.data && response.data.orders) {
           setOrdersData(response.data.orders);
         }

@@ -13,7 +13,7 @@ const BannerManager = () => {
   // ✅ Fetch all banners
   const fetchBanners = async () => {
     try {
-      const res = await axios.get("http://31.97.206.144:7021/api/admin/getallbanners");
+      const res = await axios.get("https://api.simcurarx.com/api/admin/getallbanners");
       setBanners(res.data.banners || []);
     } catch (error) {
       console.error("Error fetching banners", error);
@@ -42,7 +42,7 @@ const BannerManager = () => {
 
     try {
       await axios.post(
-        "http://31.97.206.144:7021/api/admin/createplan",
+        "https://api.simcurarx.com/api/admin/createplan",
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -68,7 +68,7 @@ const BannerManager = () => {
 
     try {
       await axios.put(
-        `http://31.97.206.144:7021/api/admin/updatebanner/${editId}`,
+        `https://api.simcurarx.com/api/admin/updatebanner/${editId}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -89,7 +89,7 @@ const BannerManager = () => {
     
     try {
       await axios.delete(
-        `http://31.97.206.144:7021/api/admin/deletebanner/${id}`
+        `https://api.simcurarx.com/api/admin/deletebanner/${id}`
       );
       fetchBanners();
       alert("Banner deleted successfully!");

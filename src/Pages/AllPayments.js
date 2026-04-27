@@ -21,7 +21,7 @@ export default function AllPayments() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://31.97.206.144:7021/api/admin/getallpayments");
+      const res = await fetch("https://api.simcurarx.com/api/admin/getallpayments");
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.message || "Failed to fetch payments");

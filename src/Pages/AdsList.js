@@ -11,7 +11,7 @@ const AdsList = () => {
   const fetchAds = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://31.97.206.144:7021/api/admin/allads");
+      const res = await axios.get("https://api.simcurarx.com/api/admin/allads");
       setAds(res.data.ads || []);
     } catch (error) {
       console.error("Fetch Ads Error:", error);
@@ -30,7 +30,7 @@ const AdsList = () => {
     if (!window.confirm("Are you sure you want to delete this ad?")) return;
 
     try {
-      await axios.delete(`http://31.97.206.144:7021/api/admin/deleteads/${id}`);
+      await axios.delete(`https://api.simcurarx.com/api/admin/deleteads/${id}`);
       setMessage("Ad deleted successfully!");
       setAds(ads.filter((ad) => ad._id !== id));
     } catch (error) {
@@ -45,7 +45,7 @@ const AdsList = () => {
     if (!newTitle) return;
 
     try {
-      await axios.put(`http://31.97.206.144:7021/api/admin/updateads/${id}`, {
+      await axios.put(`https://api.simcurarx.com/api/admin/updateads/${id}`, {
         title: newTitle,
       });
 

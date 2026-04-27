@@ -52,7 +52,7 @@ export default function RiderList() {
   const fetchRiders = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://31.97.206.144:7021/api/admin/allriders");
+      const res = await axios.get("https://api.simcurarx.com/api/admin/allriders");
       setRiders(res.data.riders || []);
     } catch (err) {
       console.error("Error fetching riders:", err);
@@ -63,7 +63,7 @@ export default function RiderList() {
 
   const fetchCurrentBaseFare = async () => {
     try {
-      const res = await axios.get("http://31.97.206.144:7021/api/admin/base-fare/current");
+      const res = await axios.get("https://api.simcurarx.com/api/admin/base-fare/current");
       if (res.data.success && res.data.configuration) {
         setCurrentBaseFare({
           baseFare: res.data.configuration.baseFare || 0,
@@ -91,7 +91,7 @@ export default function RiderList() {
     if (window.confirm("Are you sure you want to delete this rider?")) {
       try {
         const res = await axios.delete(
-          `http://31.97.206.144:7021/api/admin/delete-rider/${id}`
+          `https://api.simcurarx.com/api/admin/delete-rider/${id}`
         );
         console.log("Delete Success:", res.data);
         setRiders((prev) => prev.filter((r) => r._id !== id));
@@ -106,13 +106,13 @@ export default function RiderList() {
     e.preventDefault();
     try {
       const res = await axios.put(
-        `http://31.97.206.144:7021/api/admin/update-rider/${selectedRider._id}`,
+        `https://api.simcurarx.com/api/admin/update-rider/${selectedRider._id}`,
         selectedRider
       );
       console.log("Update Success:", res.data);
       alert("Rider updated successfully!");
       setIsEditModal(false);
-      const updatedRes = await axios.get("http://31.97.206.144:7021/api/admin/allriders");
+      const updatedRes = await axios.get("https://api.simcurarx.com/api/admin/allriders");
       setRiders(updatedRes.data.riders || []);
     } catch (err) {
       console.error("Error updating rider:", err);
@@ -139,7 +139,7 @@ export default function RiderList() {
     setBaseFareLoading(true);
     try {
       const res = await axios.post(
-        "http://31.97.206.144:7021/api/admin/base-fare/set-all",
+        "https://api.simcurarx.com/api/admin/base-fare/set-all",
         { 
           baseFare: parseFloat(baseFare),
           baseDistanceKm: parseFloat(baseDistanceKm),

@@ -23,7 +23,7 @@ const NotificationPage = () => {
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
 
   // Use localhost URL
-  const baseURL = "http://31.97.206.144:7021/api/admin";
+  const baseURL = "https://api.simcurarx.com/api/admin";
 
   // ✅ Fetch notifications
   const fetchNotifications = async () => {
@@ -224,7 +224,7 @@ const NotificationPage = () => {
 
       // Update pharmacy status
       const pharmacyRes = await axios.put(
-        `http://31.97.206.144:7021/api/pharmacy/updatepharmacy/${selectedPharmacyNotification.referenceId}`,
+        `https://api.simcurarx.com/api/pharmacy/updatepharmacy/${selectedPharmacyNotification.referenceId}`,
         { status: pharmacyStatus }
       );
 
